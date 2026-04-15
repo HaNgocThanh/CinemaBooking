@@ -1,0 +1,202 @@
+# ============================================
+# Cinema Booking System - .gitignore
+# ============================================
+
+# ============================================
+# Backend (.NET) - Build & Binaries
+# ============================================
+## Folders
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+
+## Build outputs
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/settings.json
+
+## Local history for Visual Studio
+.localhistory/
+
+## Visual Studio cache/options
+.vs/
+
+# ============================================
+# Backend - Configuration & Secrets
+# ============================================
+## Environment variables (NEVER commit these!)
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.json
+!appsettings.json
+
+## Secrets
+secrets.json
+user-secrets.json
+
+## Connection strings with credentials
+*.local
+
+# ============================================
+# Backend - Database & Migrations
+# ============================================
+## SQL migration scripts (local only)
+migrations/*.sql
+*.sql.bak
+
+## Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# ============================================
+# Backend - Logs & Reports
+# ============================================
+logs/
+*.log
+test-results/
+TestResults/
+coverage/
+*.trx
+
+# ============================================
+# Frontend (React/Node) - Dependencies
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+## npm cache
+.npm/
+.eslintcache
+.node_repl_history
+
+# ============================================
+# Frontend - Build Output
+# ============================================
+dist/
+build/
+.next/
+out/
+
+## Vite
+.vite/
+
+## Environment variables for frontend
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ============================================
+# Frontend - Development & Testing
+# ============================================
+.DS_Store
+*.pem
+.idea/
+.vscode/settings.json
+
+## Testing
+coverage/
+.nyc_output/
+
+# ============================================
+# IDE & Editor Files
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.sublime-project
+.sublime-workspace
+
+## VS Code
+.vscode/
+!.vscode/extensions.json
+
+## IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ============================================
+# OS Specific Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.gitkeep
+
+# ============================================
+# Docker & Container Files
+# ============================================
+.docker/
+docker-compose.override.yml
+
+# ============================================
+# Temporary & Backup Files
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*~
+.tmp/
+
+# ============================================
+# IDE Generated Files
+# ============================================
+.netproject/
+.project
+.classpath
+
+# ============================================
+# Miscellaneous
+# ============================================
+.env.*.local
+.cache/
+.parcel-cache/
+dist-ssr/
+*.local
+
+# ============================================
+# Keep these (Important for repo)
+# ============================================
+!.gitkeep
+!.github/
+!.gitignore
