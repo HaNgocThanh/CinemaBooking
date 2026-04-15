@@ -1,8 +1,20 @@
 {
   "version": 2,
-  "dgSpecHash": "PnBbo27qYK8=",
+  "dgSpecHash": "SxoThLiFMbg=",
   "success": true,
   "projectFilePath": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.entityframeworkcore\\10.0.6\\microsoft.entityframeworkcore.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\10.0.6\\microsoft.entityframeworkcore.abstractions.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\10.0.6\\microsoft.entityframeworkcore.analyzers.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\10.0.6\\microsoft.extensions.caching.abstractions.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.caching.memory\\10.0.6\\microsoft.extensions.caching.memory.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.6\\microsoft.extensions.dependencyinjection.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.6\\microsoft.extensions.dependencyinjection.abstractions.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.logging\\10.0.6\\microsoft.extensions.logging.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.6\\microsoft.extensions.logging.abstractions.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.options\\10.0.6\\microsoft.extensions.options.10.0.6.nupkg.sha512",
+    "C:\\Users\\hango\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.6\\microsoft.extensions.primitives.10.0.6.nupkg.sha512"
+  ],
   "logs": []
 }

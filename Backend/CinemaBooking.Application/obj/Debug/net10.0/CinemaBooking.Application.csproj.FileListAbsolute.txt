@@ -13,3 +13,4 @@ D:\CinemaBooking\src\Backend\CinemaBooking.Application\obj\Debug\net10.0\CinemaB
 D:\CinemaBooking\src\Backend\CinemaBooking.Application\obj\Debug\net10.0\refint\CinemaBooking.Application.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Application\obj\Debug\net10.0\CinemaBooking.Application.pdb
 D:\CinemaBooking\src\Backend\CinemaBooking.Application\obj\Debug\net10.0\ref\CinemaBooking.Application.dll
+D:\CinemaBooking\src\Backend\CinemaBooking.Application\obj\Debug\net10.0\CinemaBooking.Application.sourcelink.json

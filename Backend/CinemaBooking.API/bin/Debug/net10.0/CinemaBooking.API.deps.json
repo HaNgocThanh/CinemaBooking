@@ -568,7 +568,8 @@
       },
       "CinemaBooking.Application/1.0.0": {
         "dependencies": {
-          "CinemaBooking.Domain": "1.0.0"
+          "CinemaBooking.Domain": "1.0.0",
+          "Microsoft.EntityFrameworkCore": "10.0.6"
         },
         "runtime": {
           "CinemaBooking.Application.dll": {

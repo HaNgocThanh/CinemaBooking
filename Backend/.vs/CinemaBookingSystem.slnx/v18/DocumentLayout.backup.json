@@ -1,7 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\CinemaBooking\\src\\Backend\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|d:\\cinemabooking\\src\\backend\\cinemabooking.application\\cinemabooking.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|solutionrelative:cinemabooking.application\\cinemabooking.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,8 +14,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CinemaBooking.Application.csproj",
+              "DocumentMoniker": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
+              "RelativeDocumentMoniker": "CinemaBooking.Application\\CinemaBooking.Application.csproj",
+              "ToolTip": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
+              "RelativeToolTip": "CinemaBooking.Application\\CinemaBooking.Application.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-15T20:21:13.729Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
