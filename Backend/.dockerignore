@@ -1,0 +1,42 @@
+# Build output
+bin/
+obj/
+dist/
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# IDE
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Dependencies (will be restored)
+node_modules/
+packages/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+*.md
+
+# Testing
+tests/
+
+# Environment files
+.env
+.env.local
+.env.*.local
