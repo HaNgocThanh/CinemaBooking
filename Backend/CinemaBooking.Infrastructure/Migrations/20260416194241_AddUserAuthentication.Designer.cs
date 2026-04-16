@@ -12,8 +12,8 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace CinemaBooking.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260415160643_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260416194241_AddUserAuthentication")]
+    partial class AddUserAuthentication
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,6 +122,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_Booking_BookingCode");
 
+                    b.HasIndex("CustomerId");
+
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("IX_Booking_ExpiresAt");
 
@@ -180,7 +182,7 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("BOOLEAN")
+                        .HasColumnType("NUMBER(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("IsActive");
 
@@ -251,7 +253,7 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("BOOLEAN")
+                        .HasColumnType("NUMBER(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("IsActive");
 
@@ -308,6 +310,9 @@ namespace CinemaBooking.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("DATE")
                         .HasColumnName("CreatedAt");
+
+                    b.Property<DateTime?>("HoldExpiryTime")
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<DateTime?>("LockedAt")
                         .HasColumnType("DATE")
@@ -380,14 +385,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnName("BookingId");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("DATE")
-                        .HasDefaultValue(new DateTime(2026, 4, 15, 16, 6, 42, 623, DateTimeKind.Utc).AddTicks(3801))
                         .HasColumnName("CreatedAt");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("BOOLEAN")
+                        .HasColumnType("NUMBER(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("IsActive");
 
@@ -459,13 +462,97 @@ namespace CinemaBooking.Infrastructure.Migrations
                     b.ToTable("Tickets", (string)null);
                 });
 
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Id");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("DATE")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("NVARCHAR2(255)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("NVARCHAR2(200)")
+                        .HasColumnName("FullName");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(1)")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsEmailConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsEmailConfirmed");
+
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("DATE")
+                        .HasColumnName("LastLogin");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("NVARCHAR2(255)")
+                        .HasColumnName("PasswordHash");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("NVARCHAR2(20)")
+                        .HasColumnName("PhoneNumber");
+
+                    b.Property<int>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasDefaultValue(0)
+                        .HasColumnName("Role");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("DATE")
+                        .HasColumnName("UpdatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_User_CreatedAt");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("UX_User_Email");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_User_IsActive");
+
+                    b.ToTable("Users", (string)null);
+                });
+
             modelBuilder.Entity("CinemaBooking.Domain.Entities.Booking", b =>
                 {
+                    b.HasOne("CinemaBooking.Domain.Entities.User", "Customer")
+                        .WithMany("Bookings")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CinemaBooking.Domain.Entities.Showtime", "Showtime")
                         .WithMany("Bookings")
                         .HasForeignKey("ShowtimeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Showtime");
                 });
@@ -531,6 +618,11 @@ namespace CinemaBooking.Infrastructure.Migrations
             modelBuilder.Entity("CinemaBooking.Domain.Entities.ShowtimeSeat", b =>
                 {
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }

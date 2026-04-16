@@ -28,6 +28,9 @@ public class ShowtimeSeat
     /// <summary>Thời gian ghế được khóa (dùng cho pessimistic locking, 5 phút timeout).</summary>
     public DateTime? LockedAt { get; set; }
 
+    /// <summary>Thời gian hết hạn giữ ghế (5 phút sau khi khóa, auto-unlock sau thời điểm này).</summary>
+    public DateTime? HoldExpiryTime { get; set; }
+
     /// <summary>Định danh session của người dùng đang khóa ghế này (nếu có).</summary>
     public string? LockedBySessionId { get; set; }
 

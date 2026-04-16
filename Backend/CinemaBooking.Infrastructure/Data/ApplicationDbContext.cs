@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     }
 
     // DbSets
+    public DbSet<User> Users { get; set; } = null!;
     public DbSet<Movie> Movies { get; set; } = null!;
     public DbSet<Showtime> Showtimes { get; set; } = null!;
     public DbSet<ShowtimeSeat> ShowtimeSeats { get; set; } = null!;
@@ -26,11 +27,24 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configure bool columns to NUMBER(1) for Oracle compatibility
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entity.GetProperties())
+            {
+                if (property.ClrType == typeof(bool))
+                {
+                    property.SetColumnType("NUMBER(1)");
+                }
+            }
+        }
+
         ConfigureMovieEntity(modelBuilder);
         ConfigureShowtimeEntity(modelBuilder);
         ConfigureShowtimeSeatEntity(modelBuilder);
         ConfigureBookingEntity(modelBuilder);
         ConfigureTicketEntity(modelBuilder);
+        ConfigureUserEntity(modelBuilder);
     }
 
     /// <summary>
@@ -399,6 +413,12 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(e => e.ShowtimeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(e => e.Customer)
+                .WithMany(u => u.Bookings)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             // Relationships
             entity.HasMany(e => e.Tickets)
                 .WithOne(t => t.Booking)
@@ -485,8 +505,7 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("CreatedAt")
-                .HasColumnType("DATE")
-                .HasDefaultValue(DateTime.UtcNow);
+                .HasColumnType("DATE");
 
             entity.Property(e => e.UpdatedAt)
                 .HasColumnName("UpdatedAt")
@@ -517,6 +536,97 @@ public class ApplicationDbContext : DbContext
 
             entity.HasIndex(e => e.UsedAt)
                 .HasDatabaseName("IX_Ticket_UsedAt");
+        });
+    }
+
+    /// <summary>
+    /// Cấu hình User entity với Fluent API.
+    /// </summary>
+    private static void ConfigureUserEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(entity =>
+        {
+            // Table configuration
+            entity.ToTable("Users");
+            entity.HasKey(e => e.Id);
+
+            // Column configuration
+            entity.Property(e => e.Id)
+                .HasColumnName("Id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Username)
+                .HasColumnName("Username")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Email)
+                .HasColumnName("Email")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.FullName)
+                .HasColumnName("FullName")
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(e => e.PasswordHash)
+                .HasColumnName("PasswordHash")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.PhoneNumber)
+                .HasColumnName("PhoneNumber")
+                .HasMaxLength(20);
+
+            entity.Property(e => e.Role)
+                .HasColumnName("Role")
+                .HasConversion(
+                    v => (int)v,
+                    v => (UserRole)v)
+                .HasDefaultValue(UserRole.Customer);
+
+            entity.Property(e => e.IsEmailConfirmed)
+                .HasColumnName("IsEmailConfirmed")
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.IsActive)
+                .HasColumnName("IsActive")
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("CreatedAt")
+                .HasColumnType("DATE");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("UpdatedAt")
+                .HasColumnType("DATE");
+
+            entity.Property(e => e.LastLogin)
+                .HasColumnName("LastLogin")
+                .HasColumnType("DATE");
+
+            // Unique constraints
+            entity.HasIndex(e => e.Username)
+                .IsUnique()
+                .HasDatabaseName("UX_User_Username");
+
+            entity.HasIndex(e => e.Email)
+                .IsUnique()
+                .HasDatabaseName("UX_User_Email");
+
+            // Relationships
+            entity.HasMany(e => e.Bookings)
+                .WithOne(b => b.Customer)
+                .HasForeignKey(b => b.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes
+            entity.HasIndex(e => e.IsActive)
+                .HasDatabaseName("IX_User_IsActive");
+
+            entity.HasIndex(e => e.CreatedAt)
+                .HasDatabaseName("IX_User_CreatedAt");
         });
     }
 }

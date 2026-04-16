@@ -65,6 +65,7 @@ public class Booking
 
     // Navigation properties
     public virtual Showtime? Showtime { get; set; }
+    public virtual User? Customer { get; set; }
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
     /// <summary>

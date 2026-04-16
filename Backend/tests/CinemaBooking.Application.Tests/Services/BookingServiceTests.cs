@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CinemaBooking.Application.DTOs.Bookings;
 using CinemaBooking.Application.Exceptions;
 using CinemaBooking.Application.Services;
+using CinemaBooking.Application.Tests.Helpers;
 using CinemaBooking.Domain.Entities;
 using CinemaBooking.Domain.Enums;
 using CinemaBooking.Domain.Exceptions;
@@ -32,6 +33,9 @@ public class BookingServiceTests
     [SetUp]
     public void Setup()
     {
+        // Reset TestDataFactory để tránh ID conflicts giữa các tests
+        TestDataFactory.Reset();
+        
         // Create real in-memory DbContext for testing
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: $"CinemaBookingTest_{Guid.NewGuid()}")

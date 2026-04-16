@@ -29,7 +29,7 @@ namespace CinemaBooking.Infrastructure.Migrations
                     TrailerUrl = table.Column<string>(type: "NVARCHAR2(2000)", nullable: true),
                     ReleaseDate = table.Column<DateTime>(type: "DATE", nullable: true),
                     EndDate = table.Column<DateTime>(type: "DATE", nullable: true),
-                    IsActive = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: true),
+                    IsActive = table.Column<bool>(type: "NUMBER(1)", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "DATE", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "DATE", nullable: true)
                 },
@@ -51,7 +51,7 @@ namespace CinemaBooking.Infrastructure.Migrations
                     BasePrice = table.Column<decimal>(type: "DECIMAL(10,2)", precision: 10, scale: 2, nullable: false),
                     TotalSeats = table.Column<int>(type: "NUMBER(10)", nullable: false),
                     BookedSeatsCount = table.Column<int>(type: "NUMBER(10)", nullable: false, defaultValue: 0),
-                    IsActive = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: true),
+                    IsActive = table.Column<bool>(type: "NUMBER(1)", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "DATE", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "DATE", nullable: true)
                 },
@@ -141,13 +141,13 @@ namespace CinemaBooking.Infrastructure.Migrations
                     ShowtimeSeatId = table.Column<int>(type: "NUMBER(10)", nullable: false),
                     Price = table.Column<decimal>(type: "DECIMAL(10,2)", precision: 10, scale: 2, nullable: false),
                     SeatType = table.Column<string>(type: "NVARCHAR2(20)", maxLength: 20, nullable: true, defaultValue: "STANDARD"),
-                    IsActive = table.Column<bool>(type: "BOOLEAN", nullable: false, defaultValue: true),
+                    IsActive = table.Column<bool>(type: "NUMBER(1)", nullable: false, defaultValue: true),
                     IssuedAt = table.Column<DateTime>(type: "DATE", nullable: false),
                     UsedAt = table.Column<DateTime>(type: "DATE", nullable: true),
                     PrintCount = table.Column<int>(type: "NUMBER(10)", nullable: false, defaultValue: 0),
                     LastPrintedAt = table.Column<DateTime>(type: "DATE", nullable: true),
                     Notes = table.Column<string>(type: "NVARCHAR2(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "DATE", nullable: false, defaultValue: new DateTime(2026, 4, 15, 16, 6, 42, 623, DateTimeKind.Utc).AddTicks(3801)),
+                    CreatedAt = table.Column<DateTime>(type: "DATE", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "DATE", nullable: true)
                 },
                 constraints: table =>

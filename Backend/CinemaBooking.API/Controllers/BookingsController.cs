@@ -1,15 +1,19 @@
 using CinemaBooking.API.Responses;
 using CinemaBooking.Application.DTOs.Bookings;
 using CinemaBooking.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CinemaBooking.API.Controllers;
 
 /// <summary>
 /// Controller quản lý các endpoints liên quan đến booking (đặt vé).
+/// ✅ Tất cả endpoints được bảo vệ bằng [Authorize] - yêu cầu JWT Token hợp lệ.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]  // ✅ Yêu cầu JWT Token cho tất cả endpoints
 public class BookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;
@@ -86,5 +90,64 @@ public class BookingsController : ControllerBase
             routeValues: new { id = result.BookingId },
             value: response
         );
+    }
+
+    /// <summary>
+    /// ✅ Helper Method: Lấy UserId từ JWT Claims.
+    /// 
+    /// Cách sử dụng:
+    /// ```csharp
+    /// var userId = GetCurrentUserId();
+    /// request.CustomerId = userId;
+    /// ```
+    /// 
+    /// Dữ liệu JWT Claims có sẵn trong User.Claims:
+    /// - "UserId" - Mã định danh user
+    /// - "Email" - Email từ JWT Token
+    /// - "Role" - Vai trò (Admin/Customer)
+    /// - ClaimTypes.NameIdentifier - User ID (từ JWT)
+    /// </summary>
+    /// <returns>UserId (int) hoặc 0 nếu không tìm thấy.</returns>
+    private int GetCurrentUserId()
+    {
+        // Cách 1: Lấy từ custom claim "UserId"
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return userId;
+        }
+
+        // Cách 2: Lấy từ standard claim NameIdentifier (fallback)
+        var nameIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (nameIdClaim != null && int.TryParse(nameIdClaim.Value, out var nameId))
+        {
+            return nameId;
+        }
+
+        return 0;  // Return 0 nếu không tìm thấy (không nên xảy ra nếu [Authorize] hoạt động)
+    }
+
+    /// <summary>
+    /// Helper Method: Lấy Email từ JWT Claims.
+    /// </summary>
+    private string GetCurrentUserEmail()
+    {
+        return User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("Email")?.Value ?? "unknown";
+    }
+
+    /// <summary>
+    /// Helper Method: Lấy Role từ JWT Claims.
+    /// </summary>
+    private string GetCurrentUserRole()
+    {
+        return User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("Role")?.Value ?? "Customer";
+    }
+
+    /// <summary>
+    /// Helper Method: Lấy Username từ JWT Claims.
+    /// </summary>
+    private string GetCurrentUsername()
+    {
+        return User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("Username")?.Value ?? "unknown";
     }
 }
