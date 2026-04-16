@@ -1,7 +1,7 @@
 using CinemaBooking.Application.DTOs.Bookings;
 using CinemaBooking.Application.Exceptions;
 using CinemaBooking.Application.Helpers;
-using CinemaBooking.Application.Services;
+using CinemaBooking.Application.Services.Interfaces;
 using CinemaBooking.Domain.Entities;
 using CinemaBooking.Domain.Enums;
 using CinemaBooking.Domain.Exceptions;

@@ -29,17 +29,22 @@ public class AuthService : IAuthService
     }
 
     /// <summary>
-    /// Đăng nhập: Xác thực email/password và sinh JWT Token.
+    /// Đăng nhập: Xác thực bằng Email hoặc Username kèm Password và sinh JWT Token.
     /// </summary>
-    public async Task<AuthResponseDto?> LoginAsync(string email, string password)
+    /// <param name="usernameOrEmail">Tên đăng nhập hoặc Email của người dùng.</param>
+    /// <param name="password">Mật khẩu (plaintext, sẽ được so sánh với hash).</param>
+    /// <returns>AuthResponseDto nếu thành công, null nếu thất bại.</returns>
+    public async Task<AuthResponseDto?> LoginAsync(string usernameOrEmail, string password)
     {
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
             return null;
 
-        // Tìm user theo email
+        // Tìm user theo Username HOẶC Email (case-insensitive for email)
         var user = await _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => 
+                u.Username == usernameOrEmail || 
+                u.Email == usernameOrEmail.ToLower());
 
         if (user == null)
             return null;
@@ -221,5 +226,62 @@ public class AuthService : IAuthService
         return await _context.Users
             .AsNoTracking()
             .AnyAsync(u => u.Email == email);
+    }
+
+    /// <summary>
+    /// Thay đổi mật khẩu cho người dùng.
+    /// Kiểm tra mật khẩu cũ, xác thực mật khẩu mới, và lưu vào database.
+    /// </summary>
+    /// <param name="userId">ID của người dùng muốn đổi mật khẩu.</param>
+    /// <param name="request">ChangePasswordRequestDto chứa mật khẩu cũ, mật khẩu mới, và xác nhận.</param>
+    /// <returns>true nếu đổi mật khẩu thành công.</returns>
+    /// <exception cref="InvalidOperationException">Khi user không tồn tại, mật khẩu cũ sai, hoặc mật khẩu mới không hợp lệ.</exception>
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+    {
+        // Validate input
+        if (request == null || 
+            string.IsNullOrWhiteSpace(request.OldPassword) ||
+            string.IsNullOrWhiteSpace(request.NewPassword) ||
+            string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
+        {
+            throw new InvalidOperationException("Mật khẩu cũ, mật khẩu mới, và xác nhận không thể trống.");
+        }
+
+        // Kiểm tra mật khẩu mới == xác nhận
+        if (request.NewPassword != request.ConfirmNewPassword)
+        {
+            throw new InvalidOperationException("Mật khẩu mới và xác nhận không khớp.");
+        }
+
+        // Kiểm tra mật khẩu mới khác với mật khẩu cũ
+        if (request.OldPassword == request.NewPassword)
+        {
+            throw new InvalidOperationException("Mật khẩu mới phải khác với mật khẩu cũ.");
+        }
+
+        // Tìm user
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("Người dùng không tồn tại.");
+        }
+
+        // Kiểm tra mật khẩu cũ có đúng không (dùng BCrypt.Verify)
+        if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
+        {
+            throw new InvalidOperationException("Mật khẩu cũ không chính xác.");
+        }
+
+        // Mã hóa mật khẩu mới
+        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        // Cập nhật mật khẩu và UpdatedAt timestamp
+        user.PasswordHash = newPasswordHash;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

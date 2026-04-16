@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using BCrypt.Net;
 using CinemaBooking.Application.DTOs.Auth;
 using CinemaBooking.Application.Tests.Fixtures;
 using CinemaBooking.Application.Tests.Helpers;
@@ -222,7 +223,7 @@ public class AuthServiceTests
 
     [Test]
     [Description("Đăng nhập với email và password hợp lệ. Kiểm tra trả về AuthResponseDto với Username.")]
-    public async Task LoginAsync_ValidCredentials_ReturnsAuthResponse()
+    public async Task LoginAsync_ValidCredentialsWithEmail_ReturnsAuthResponse()
     {
         // ========== ARRANGE ==========
         const string password = "ValidPass123";
@@ -248,15 +249,65 @@ public class AuthServiceTests
     }
 
     [Test]
-    [Description("Đăng nhập với email không tồn tại. Kiểm tra trả về null.")]
-    public async Task LoginAsync_UserNotFound_ReturnsNull()
+    [Description("Đăng nhập bằng Email hợp lệ. Kiểm tra thành công.")]
+    public async Task LoginAsync_UsingValidEmail_ReturnsSuccess()
     {
         // ========== ARRANGE ==========
-        const string email = "notexist@example.com";
         const string password = "ValidPass123";
+        const string email = "testuser@example.com";
+        const string username = "testuser";
+        var user = UserFixture.CreateValidUser(username: username, email: email, password: password);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+        
+        _dbContext.ChangeTracker.Clear();
 
         // ========== ACT ==========
         var result = await _authService.LoginAsync(email, password);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result.Username.Should().Be(username);
+        result.Email.Should().Be(email);
+        result.UserId.Should().Be(user.Id);
+        result.Token.Should().NotBeNullOrEmpty();
+    }
+
+    [Test]
+    [Description("Đăng nhập bằng Username hợp lệ. Kiểm tra thành công.")]
+    public async Task LoginAsync_UsingValidUsername_ReturnsSuccess()
+    {
+        // ========== ARRANGE ==========
+        const string password = "ValidPass123";
+        const string email = "testuser2@example.com";
+        const string username = "testuser2";
+        var user = UserFixture.CreateValidUser(username: username, email: email, password: password);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+        
+        _dbContext.ChangeTracker.Clear();
+
+        // ========== ACT ==========
+        var result = await _authService.LoginAsync(username, password);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result.Username.Should().Be(username);
+        result.Email.Should().Be(email);
+        result.UserId.Should().Be(user.Id);
+        result.Token.Should().NotBeNullOrEmpty();
+    }
+
+    [Test]
+    [Description("Đăng nhập với username hoặc email không tồn tại. Kiểm tra trả về null.")]
+    public async Task LoginAsync_UserNotFound_ReturnsNull()
+    {
+        // ========== ARRANGE ==========
+        const string usernameOrEmail = "notexist";
+        const string password = "ValidPass123";
+
+        // ========== ACT ==========
+        var result = await _authService.LoginAsync(usernameOrEmail, password);
 
         // ========== ASSERT ==========
         result.Should().BeNull();
@@ -304,15 +355,15 @@ public class AuthServiceTests
     }
 
     [Test]
-    [Description("Đăng nhập với email hoặc password rỗng. Kiểm tra trả về null.")]
+    [Description("Đăng nhập với username hoặc password rỗng. Kiểm tra trả về null.")]
     public async Task LoginAsync_EmptyCredentials_ReturnsNull()
     {
-        // ========== ACT & ASSERT - Empty email ==========
+        // ========== ACT & ASSERT - Empty usernameOrEmail ==========
         var result1 = await _authService.LoginAsync("", "password");
         result1.Should().BeNull();
 
         // ========== ACT & ASSERT - Empty password ==========
-        var result2 = await _authService.LoginAsync("user@example.com", "");
+        var result2 = await _authService.LoginAsync("user", "");
         result2.Should().BeNull();
 
         // ========== ACT & ASSERT - Both empty ==========
@@ -417,6 +468,152 @@ public class AuthServiceTests
 
         // ========== ASSERT ==========
         result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region ChangePasswordAsync Tests
+
+    [Test]
+    [Description("Đổi mật khẩu với dữ liệu hợp lệ. Kiểm tra thành công.")]
+    public async Task ChangePasswordAsync_ValidCredentials_ReturnsTrue()
+    {
+        // ========== ARRANGE ==========
+        const string oldPassword = "OldPass123";
+        const string newPassword = "NewPass123";
+        var user = UserFixture.CreateValidUser(password: oldPassword);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        // Clear tracker to avoid conflicts with ChangePasswordAsync update
+        _dbContext.ChangeTracker.Clear();
+
+        var request = new ChangePasswordRequestDto
+        {
+            OldPassword = oldPassword,
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+
+        // ========== ACT ==========
+        var result = await _authService.ChangePasswordAsync(user.Id, request);
+
+        // ========== ASSERT ==========
+        result.Should().BeTrue();
+
+        // Verify password was actually changed in database
+        var updatedUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+        updatedUser.Should().NotBeNull();
+        updatedUser!.PasswordHash.Should().NotBe(user.PasswordHash);  // Hash should be different
+
+        // Verify new password is correct (verify with BCrypt)
+        BCrypt.Net.BCrypt.Verify(newPassword, updatedUser.PasswordHash).Should().BeTrue();
+
+        // Verify old password no longer works
+        BCrypt.Net.BCrypt.Verify(oldPassword, updatedUser.PasswordHash).Should().BeFalse();
+    }
+
+    [Test]
+    [Description("Đổi mật khẩu với mật khẩu cũ sai. Kiểm tra ném InvalidOperationException.")]
+    public async Task ChangePasswordAsync_InvalidOldPassword_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        const string correctOldPassword = "CorrectPass123";
+        const string wrongOldPassword = "WrongPassword";
+        const string newPassword = "NewPass123";
+        
+        var user = UserFixture.CreateValidUser(password: correctOldPassword);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new ChangePasswordRequestDto
+        {
+            OldPassword = wrongOldPassword,  // Wrong old password
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+
+        // ========== ACT & ASSERT ==========
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await _authService.ChangePasswordAsync(user.Id, request));
+
+        ex.Message.Should().Contain("Mật khẩu cũ không chính xác");
+
+        // Verify password was NOT changed
+        var unchangedUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+        unchangedUser!.PasswordHash.Should().Be(user.PasswordHash);
+    }
+
+    [Test]
+    [Description("Đổi mật khẩu khi mật khẩu mới không khớp xác nhận. Kiểm tra ném InvalidOperationException.")]
+    public async Task ChangePasswordAsync_PasswordMismatch_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        const string oldPassword = "OldPass123";
+        const string newPassword = "NewPass123";
+        const string wrongConfirmPassword = "DifferentPass123";
+
+        var user = UserFixture.CreateValidUser(password: oldPassword);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new ChangePasswordRequestDto
+        {
+            OldPassword = oldPassword,
+            NewPassword = newPassword,
+            ConfirmNewPassword = wrongConfirmPassword  // Doesn't match NewPassword
+        };
+
+        // ========== ACT & ASSERT ==========
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await _authService.ChangePasswordAsync(user.Id, request));
+
+        ex.Message.Should().Contain("không khớp");
+    }
+
+    [Test]
+    [Description("Đổi mật khẩu khi mật khẩu mới giống mật khẩu cũ. Kiểm tra ném InvalidOperationException.")]
+    public async Task ChangePasswordAsync_SamePassword_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        const string password = "SamePass123";
+
+        var user = UserFixture.CreateValidUser(password: password);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new ChangePasswordRequestDto
+        {
+            OldPassword = password,
+            NewPassword = password,  // Same as old password
+            ConfirmNewPassword = password
+        };
+
+        // ========== ACT & ASSERT ==========
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await _authService.ChangePasswordAsync(user.Id, request));
+
+        ex.Message.Should().Contain("khác với mật khẩu cũ");
+    }
+
+    [Test]
+    [Description("Đổi mật khẩu cho user không tồn tại. Kiểm tra ném InvalidOperationException.")]
+    public async Task ChangePasswordAsync_UserNotFound_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        const int nonExistentUserId = 999;
+        var request = new ChangePasswordRequestDto
+        {
+            OldPassword = "OldPass123",
+            NewPassword = "NewPass123",
+            ConfirmNewPassword = "NewPass123"
+        };
+
+        // ========== ACT & ASSERT ==========
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await _authService.ChangePasswordAsync(nonExistentUserId, request));
+
+        ex.Message.Should().Contain("không tồn tại");
     }
 
     #endregion

@@ -1,6 +1,6 @@
-using CinemaBooking.API.Responses;
+using CinemaBooking.Application.DTOs.Common;
 using CinemaBooking.Application.DTOs.Bookings;
-using CinemaBooking.Application.Services;
+using CinemaBooking.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

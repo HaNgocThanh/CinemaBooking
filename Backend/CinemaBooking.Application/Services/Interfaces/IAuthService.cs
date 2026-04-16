@@ -3,8 +3,8 @@ using CinemaBooking.Application.DTOs.Auth;
 namespace CinemaBooking.Application.Services.Interfaces;
 
 /// <summary>
-/// Interface cho Authentication Service.
-/// Xử lý logic đăng nhập, đăng ký, và sinh JWT Token.
+/// Interface cho Authentication Service (Application Layer).
+/// Xử lý logic đăng nhập, đăng ký, JWT Token, đổi mật khẩu.
 /// </summary>
 public interface IAuthService
 {
@@ -40,4 +40,13 @@ public interface IAuthService
     /// <param name="email">Email cần kiểm tra.</param>
     /// <returns>true nếu email tồn tại, false nếu chưa.</returns>
     Task<bool> EmailExistsAsync(string email);
+
+    /// <summary>
+    /// Thay đổi mật khẩu của người dùng.
+    /// </summary>
+    /// <param name="userId">ID của người dùng muốn đổi mật khẩu.</param>
+    /// <param name="request">ChangePasswordRequestDto chứa mật khẩu cũ, mật khẩu mới, và xác nhận mật khẩu mới.</param>
+    /// <returns>true nếu đổi mật khẩu thành công.</returns>
+    /// <exception cref="InvalidOperationException">Khi mật khẩu cũ không đúng hoặc mật khẩu mới không hợp lệ.</exception>
+    Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
 }

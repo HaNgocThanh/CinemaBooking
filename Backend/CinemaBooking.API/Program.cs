@@ -1,5 +1,4 @@
 using CinemaBooking.API.Middlewares;
-using CinemaBooking.Application.Services;
 using CinemaBooking.Application.Services.Interfaces;
 using CinemaBooking.Domain.Interfaces;
 using CinemaBooking.Infrastructure.BackgroundJobs;

@@ -1,4 +1,5 @@
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Infrastructure.deps.json
+D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Infrastructure.runtimeconfig.json
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Infrastructure.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Infrastructure.pdb
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Application.dll
@@ -10,11 +11,10 @@ D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\Cine
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.AssemblyInfoInputs.cache
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.AssemblyInfo.cs
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.csproj.CoreCompileInputs.cache
+D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.sourcelink.json
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBo.9CBCD067.Up2Date
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\refint\CinemaBooking.Infrastructure.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.pdb
-D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\ref\CinemaBooking.Infrastructure.dll
-D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\bin\Debug\net10.0\CinemaBooking.Infrastructure.runtimeconfig.json
 D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.genruntimeconfig.cache
-D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\CinemaBooking.Infrastructure.sourcelink.json
+D:\CinemaBooking\src\Backend\CinemaBooking.Infrastructure\obj\Debug\net10.0\ref\CinemaBooking.Infrastructure.dll

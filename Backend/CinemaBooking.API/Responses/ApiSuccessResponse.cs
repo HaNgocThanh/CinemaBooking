@@ -1,39 +1,11 @@
-using System.Text.Json.Serialization;
+// ⚠️ This file has been moved to CinemaBooking.Application.DTOs.Common.ApiSuccessResponse
+// Please import from CinemaBooking.Application.DTOs.Common instead of CinemaBooking.API.Responses
+
+using CinemaBooking.Application.DTOs.Common;
 
 namespace CinemaBooking.API.Responses;
 
-/// <summary>
-/// Response wrapper cho API responses thành công.
-/// </summary>
-/// <typeparam name="T">Kiểu dữ liệu của data.</typeparam>
-public class ApiSuccessResponse<T>
+[Obsolete("Use CinemaBooking.Application.DTOs.Common.ApiSuccessResponse instead", error: false)]
+public class ApiSuccessResponse<T> : global::CinemaBooking.Application.DTOs.Common.ApiSuccessResponse<T>
 {
-    /// <summary>Luôn là true cho success response.</summary>
-    [JsonPropertyName("success")]
-    public bool Success => true;
-
-    /// <summary>Dữ liệu được trả về (payload).</summary>
-    [JsonPropertyName("data")]
-    public T? Data { get; set; }
-
-    /// <summary>Thông điệp mô tả kết quả (user-friendly).</summary>
-    [JsonPropertyName("message")]
-    public string? Message { get; set; }
-
-    /// <summary>Timestamp của response (UTC).</summary>
-    [JsonPropertyName("timestamp")]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-    /// <summary>Trace ID để track request trong logs.</summary>
-    [JsonPropertyName("traceId")]
-    public string? TraceId { get; set; }
-
-    public ApiSuccessResponse() { }
-
-    public ApiSuccessResponse(T data, string message = "Thành công", string? traceId = null)
-    {
-        Data = data;
-        Message = message;
-        TraceId = traceId;
-    }
 }

@@ -5,8 +5,8 @@ D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBookin
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.AssemblyInfoInputs.cache
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.AssemblyInfo.cs
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.csproj.CoreCompileInputs.cache
+D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.sourcelink.json
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\refint\CinemaBooking.Domain.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.pdb
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\ref\CinemaBooking.Domain.dll
-D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.sourcelink.json

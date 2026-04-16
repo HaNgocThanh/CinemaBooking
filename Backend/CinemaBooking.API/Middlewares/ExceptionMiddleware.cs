@@ -1,4 +1,4 @@
-using CinemaBooking.API.Responses;
+using CinemaBooking.Application.DTOs.Common;
 using ApplicationException = CinemaBooking.Application.Exceptions.ApplicationException;
 using CinemaBooking.Application.Exceptions;
 using CinemaBooking.Domain.Exceptions;

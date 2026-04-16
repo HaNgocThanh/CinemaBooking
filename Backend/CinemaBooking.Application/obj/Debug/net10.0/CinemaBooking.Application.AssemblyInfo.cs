@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CinemaBooking.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f4e3b1506c95d7e11785d1e85e2989036b95bd6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8aa90401ff96c81f942e6b40ee91675040655b7a")]
 [assembly: System.Reflection.AssemblyProductAttribute("CinemaBooking.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CinemaBooking.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
