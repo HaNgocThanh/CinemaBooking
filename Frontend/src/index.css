@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
+html, body {
+  background-color: #0f172a !important;
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
-  --bg: #fff;
+  --bg: #0f172a;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
@@ -21,7 +27,7 @@
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
+  background: #0f172a;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -36,7 +42,7 @@
   :root {
     --text: #9ca3af;
     --text-h: #f3f4f6;
-    --bg: #16171d;
+    --bg: #0f172a;
     --border: #2e303a;
     --code-bg: #1f2028;
     --accent: #c084fc;
@@ -54,18 +60,20 @@
 
 body {
   margin: 0;
+  padding: 0;
+  background-color: #0f172a;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background-color: #0f172a;
 }
 
 h1,
