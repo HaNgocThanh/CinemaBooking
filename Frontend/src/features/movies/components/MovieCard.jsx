@@ -10,8 +10,9 @@ import PropTypes from 'prop-types';
  * - Smooth overlay fade (0% → 100%)
  * - CTA buttons with staggered animation
  */
-export function MovieCard({ movie, onBuyTicket, onWatchTrailer }) {
+export function MovieCard({ movie, onBuyTicket, onWatchTrailer, isComingSoon = false }) {
   const handleBuyTicket = (e) => {
+    if (isComingSoon) return;
     e.stopPropagation();
     onBuyTicket(movie.id);
   };
@@ -22,15 +23,16 @@ export function MovieCard({ movie, onBuyTicket, onWatchTrailer }) {
   };
 
   return (
-    <motion.article
-      whileHover="hover"
-      initial="initial"
-      variants={{
-        initial: { opacity: 1, y: 0 },
-        hover: { opacity: 1, y: 0 },
-      }}
-      className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden group cursor-pointer"
-    >
+    <div className="flex flex-col gap-3">
+      <motion.article
+        whileHover="hover"
+        initial="initial"
+        variants={{
+          initial: { opacity: 1, y: 0 },
+          hover: { opacity: 1, y: 0 },
+        }}
+        className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden group cursor-pointer"
+      >
       {/* Poster Image with Scale Animation */}
       <motion.img
         src={movie.posterUrl}
@@ -53,6 +55,32 @@ export function MovieCard({ movie, onBuyTicket, onWatchTrailer }) {
         transition={{ duration: 0.3 }}
       />
 
+      {/* Coming Soon Badge & Info */}
+      {isComingSoon && (
+        <div className="absolute top-4 right-4 z-10">
+          <span className="px-3 py-1 bg-rose-600/90 backdrop-blur-md text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-lg">
+            Sắp Chiếu
+          </span>
+        </div>
+      )}
+      {isComingSoon && movie.releaseDate && (
+        <motion.div
+          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+          variants={{
+            initial: { opacity: 0, y: 10 },
+            hover: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="bg-black/60 backdrop-blur-md px-6 py-4 rounded-xl border border-white/10 text-center transform -translate-y-8">
+            <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Khởi chiếu</p>
+            <p className="text-white text-lg font-bold">
+              {new Date(movie.releaseDate).toLocaleDateString('vi-VN')}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* CTA Buttons Container */}
       <motion.div
         className="absolute inset-0 flex flex-col items-center justify-end pb-8 px-4"
@@ -71,14 +99,16 @@ export function MovieCard({ movie, onBuyTicket, onWatchTrailer }) {
           transition={{ duration: 0.4, delay: 0.1 }}
         >
           {/* Buy Ticket Button */}
-          <motion.button
-            onClick={handleBuyTicket}
-            whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(225, 29, 72, 0.3)' }}
-            whileTap={{ scale: 0.95 }}
-            className="flex-1 px-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg"
-          >
-            Mua vé
-          </motion.button>
+          {!isComingSoon && (
+            <motion.button
+              onClick={handleBuyTicket}
+              whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(225, 29, 72, 0.3)' }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-rose-600 to-rose-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg"
+            >
+              Mua vé
+            </motion.button>
+          )}
 
           {/* Trailer Button */}
           <motion.button
@@ -92,6 +122,17 @@ export function MovieCard({ movie, onBuyTicket, onWatchTrailer }) {
         </motion.div>
       </motion.div>
     </motion.article>
+
+      {/* Movie Title */}
+      <div className="px-1">
+        <h3 className="text-white text-lg font-bold truncate tracking-wide" title={movie.title}>
+          {movie.title}
+        </h3>
+        {movie.genre && (
+          <p className="text-slate-400 text-sm mt-0.5 truncate">{movie.genre}</p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -99,10 +140,12 @@ MovieCard.propTypes = {
   movie: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     title: PropTypes.string.isRequired,
-    posterUrl: PropTypes.string.isRequired,
+    posterUrl: PropTypes.string,
+    releaseDate: PropTypes.string,
   }).isRequired,
   onBuyTicket: PropTypes.func,
   onWatchTrailer: PropTypes.func,
+  isComingSoon: PropTypes.bool,
 };
 
 MovieCard.defaultProps = {

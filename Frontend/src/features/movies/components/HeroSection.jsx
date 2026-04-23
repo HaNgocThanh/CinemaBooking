@@ -11,9 +11,9 @@ export default function HeroSection({ featuredMovie }) {
       {/* Background Image - Full Width */}
       <div className="absolute inset-0 z-0">
         <img
-          src={featuredMovie.backdropUrl}
+          src={featuredMovie.bannerUrl || featuredMovie.posterUrl}
           alt={featuredMovie.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
 
         {/* Premium Gradient Overlay */}
@@ -66,9 +66,9 @@ export default function HeroSection({ featuredMovie }) {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex items-center gap-4 text-slate-400 text-sm mb-8"
           >
-            <span>{featuredMovie.duration} phút</span>
+            <span>{featuredMovie.durationMinutes} phút</span>
             <span className="w-1 h-1 bg-rose-600 rounded-full" />
-            <span>{featuredMovie.releaseYear}</span>
+            <span>{featuredMovie.genre}</span>
             <span className="w-1 h-1 bg-rose-600 rounded-full" />
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">★</span>

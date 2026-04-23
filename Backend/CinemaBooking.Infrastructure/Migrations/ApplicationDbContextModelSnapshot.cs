@@ -145,6 +145,10 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("NVARCHAR2(2000)")
+                        .HasColumnName("BannerUrl");
+
                     b.Property<string>("Cast")
                         .HasMaxLength(500)
                         .HasColumnType("NVARCHAR2(500)")
@@ -182,6 +186,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NUMBER(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsFeatured")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsFeatured");
 
                     b.Property<string>("Language")
                         .HasMaxLength(50)

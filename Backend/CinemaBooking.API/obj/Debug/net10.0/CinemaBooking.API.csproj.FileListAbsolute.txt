@@ -126,7 +126,6 @@ D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.A
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.AssemblyInfoInputs.cache
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.AssemblyInfo.cs
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.csproj.CoreCompileInputs.cache
-D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.MvcApplicationPartsAssemblyInfo.cs
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.MvcApplicationPartsAssemblyInfo.cache
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.sourcelink.json
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\rjimswa.dswa.cache.json
@@ -144,3 +143,5 @@ D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\refint\CinemaBo
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.pdb
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.genruntimeconfig.cache
 D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\ref\CinemaBooking.API.dll
+D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\CinemaBooking.API.MvcApplicationPartsAssemblyInfo.cs
+D:\CinemaBooking\src\Backend\CinemaBooking.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

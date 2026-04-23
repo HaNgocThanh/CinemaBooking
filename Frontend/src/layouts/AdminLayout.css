@@ -1,0 +1,129 @@
+.admin-layout {
+  background: #f0f2f5;
+}
+
+/* Sidebar Styling */
+.admin-sider {
+  background: linear-gradient(180deg, #001529 0%, #0d1b2a 100%) !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 64px;
+  padding: 0 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-menu {
+  border-right: none;
+  padding: 8px 0;
+}
+
+.admin-menu .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 6px;
+  height: 40px;
+  line-height: 40px;
+}
+
+.admin-menu .ant-menu-item-selected {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 6px;
+}
+
+.admin-menu .ant-menu-item:hover {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Sidebar Footer */
+.admin-sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.admin-sidebar-user {
+  padding: 8px 12px 12px;
+}
+
+.admin-sidebar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-sidebar-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-sidebar-user-name {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-sidebar-user-role {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+}
+
+/* Content Area */
+.admin-content {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+/* Footer */
+.admin-footer {
+  background: white;
+  padding: 12px 24px;
+  text-align: center;
+  color: #8c8c8c;
+  border-top: 1px solid #f0f0f0;
+  font-size: 12px;
+}
+
+.admin-footer p {
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 12px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .admin-layout {
+    background: #141414;
+  }
+
+  .admin-content {
+    background: #141414;
+  }
+
+  .admin-footer {
+    background: #1f1f1f;
+  }
+}

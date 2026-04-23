@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * Navbar Component - Premium Minimalist Design
@@ -9,6 +10,8 @@ import { motion } from 'framer-motion';
  */
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <motion.nav
@@ -63,12 +66,50 @@ export default function Navbar() {
 
           {/* Auth & Profile */}
           <div className="flex items-center space-x-4">
-            <Link
-              to="/auth/login"
-              className="hidden sm:inline-block px-6 py-2.5 text-sm text-slate-100 border border-slate-700 rounded-lg hover:border-rose-600/30 hover:bg-rose-600/5 transition-all duration-300"
-            >
-              Đăng nhập
-            </Link>
+            {user ? (
+              <>
+                <div className="hidden sm:flex items-center space-x-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-slate-100">
+                      {user.fullName || user.username}
+                    </p>
+                    <p className="text-xs text-slate-500">{user.role}</p>
+                  </div>
+                </div>
+                {/* Admin Dashboard Button - Only visible for Admin role */}
+                {user.role === 'Admin' && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/admin/movies')}
+                    className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-rose-500 rounded-lg shadow-lg shadow-rose-600/20 hover:shadow-rose-600/40 transition-all duration-300"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Quản Trị
+                  </motion.button>
+                )}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="hidden sm:inline-block px-6 py-2.5 text-sm text-slate-100 border border-slate-700 rounded-lg hover:border-rose-600/30 hover:bg-rose-600/5 transition-all duration-300"
+                >
+                  Đăng xuất
+                </motion.button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden sm:inline-block px-6 py-2.5 text-sm text-slate-100 border border-slate-700 rounded-lg hover:border-rose-600/30 hover:bg-rose-600/5 transition-all duration-300"
+              >
+                Đăng nhập
+              </Link>
+            )}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

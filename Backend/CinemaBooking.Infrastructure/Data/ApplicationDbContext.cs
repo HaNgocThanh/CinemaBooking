@@ -101,6 +101,13 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.TrailerUrl)
                 .HasColumnName("TrailerUrl");
 
+            entity.Property(e => e.BannerUrl)
+                .HasColumnName("BannerUrl");
+
+            entity.Property(e => e.IsFeatured)
+                .HasColumnName("IsFeatured")
+                .HasDefaultValue(false);
+
             entity.Property(e => e.ReleaseDate)
                 .HasColumnName("ReleaseDate")
                 .HasColumnType("DATE");

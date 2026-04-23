@@ -38,6 +38,12 @@ public class Movie
     /// <summary>URL trailer phim.</summary>
     public string? TrailerUrl { get; set; }
 
+    /// <summary>URL ảnh banner ngang (dùng cho Hero Section).</summary>
+    public string? BannerUrl { get; set; }
+
+    /// <summary>Phim nổi bật — Admin chọn để hiển thị trên Banner trang chủ.</summary>
+    public bool IsFeatured { get; set; } = false;
+
     /// <summary>Ngày phim bắt đầu công chiếu.</summary>
     public DateTime? ReleaseDate { get; set; }
 

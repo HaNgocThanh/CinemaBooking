@@ -80,6 +80,7 @@ builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 // Register application services
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
 
 // 🚀 Register background jobs
 builder.Services.AddHostedService<SeatCleanupWorker>();
@@ -87,10 +88,20 @@ builder.Services.AddHostedService<SeatCleanupWorker>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// 🔓 CORS Configuration - Allow ALL origins (development only!)
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-// Register exception middleware FIRST (before other middlewares)
+// 🔓 Use CORS middleware FIRST (before anything else)
+app.UseCors(policy => policy
+    .AllowAnyOrigin()
+    .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+    .WithHeaders("Content-Type", "Authorization")
+);
+
+// Register exception middleware AFTER CORS
 app.UseExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())
@@ -98,7 +109,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// 🚀 Skip HTTPS redirection in development to avoid CORS issues
+// app.UseHttpsRedirection();
 
 // ✅ Thêm Authentication & Authorization middleware
 app.UseAuthentication();

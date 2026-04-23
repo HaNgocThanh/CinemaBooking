@@ -1,88 +1,121 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from './axiosClient';
 
 /**
  * Auth API Service
- * Chứa các hàm gọi API liên quan tới authentication
+ * Shared authentication API functions + React Query hooks
  */
+
+// ========================================
+// API Functions
+// ========================================
 
 const authApi = {
   /**
    * Đăng nhập
-   * @param {Object} data - { email, password }
-   * @returns {Promise} Trả về { token, user }
+   * @param {Object} data - { usernameOrEmail, password }
+   * @returns {Promise}
    */
-  login: async (data) => {
-    const response = await axiosClient.post('/api/auth/login', data);
-    return response.data;
-  },
+  login: (data) => axiosClient.post('/auth/login', data),
 
   /**
    * Đăng ký
-   * @param {Object} data - { email, password, fullName, phone }
-   * @returns {Promise} Trả về { userId, email }
+   * @param {Object} data - { email, password, fullName }
+   * @returns {Promise}
    */
-  register: async (data) => {
-    const response = await axiosClient.post('/api/auth/register', data);
-    return response.data;
+  register: (data) => axiosClient.post('/auth/register', data),
+
+  /**
+   * Đăng xuất (client-side)
+   */
+  logout: () => {
+    localStorage.removeItem('JWT_TOKEN');
+    localStorage.removeItem('user');
+    return Promise.resolve();
   },
+
+  /**
+   * Lấy thông tin user hiện tại
+   */
+  getCurrentUser: () => axiosClient.get('/auth/me'),
 
   /**
    * Đổi mật khẩu
    * @param {Object} data - { currentPassword, newPassword, confirmPassword }
-   * @returns {Promise} Trả về { success, message }
    */
-  changePassword: async (data) => {
-    const response = await axiosClient.post('/api/auth/change-password', data);
-    return response.data;
-  },
-
-  /**
-   * Xác minh email
-   * @param {string} token - Token từ email verification link
-   * @returns {Promise}
-   */
-  verifyEmail: async (token) => {
-    const response = await axiosClient.post('/api/auth/verify-email', { token });
-    return response.data;
-  },
-
-  /**
-   * Đăng xuất (optional - chủ yếu xóa token ở client)
-   * @returns {Promise}
-   */
-  logout: async () => {
-    const response = await axiosClient.post('/api/auth/logout');
-    return response.data;
-  },
+  changePassword: (data) => axiosClient.post('/auth/change-password', data),
 
   /**
    * Quên mật khẩu - Gửi email reset
    * @param {string} email
-   * @returns {Promise}
    */
-  forgotPassword: async (email) => {
-    const response = await axiosClient.post('/api/auth/forgot-password', { email });
-    return response.data;
-  },
+  forgotPassword: (email) => axiosClient.post('/auth/forgot-password', { email }),
 
   /**
    * Reset mật khẩu
    * @param {Object} data - { token, newPassword, confirmPassword }
-   * @returns {Promise}
    */
-  resetPassword: async (data) => {
-    const response = await axiosClient.post('/api/auth/reset-password', data);
-    return response.data;
-  },
+  resetPassword: (data) => axiosClient.post('/auth/reset-password', data),
 
   /**
    * Làm mới JWT token
-   * @returns {Promise} Trả về token mới
    */
-  refreshToken: async () => {
-    const response = await axiosClient.post('/api/auth/refresh-token');
-    return response.data;
-  },
+  refreshToken: () => axiosClient.post('/auth/refresh-token'),
 };
+
+// ========================================
+// React Query Hooks
+// ========================================
+
+/**
+ * Hook for login mutation
+ */
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.login,
+    onSuccess: (data) => {
+      if (data?.token) {
+        localStorage.setItem('JWT_TOKEN', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        queryClient.setQueryData(['user'], data.user);
+      }
+    },
+  });
+}
+
+/**
+ * Hook for register mutation
+ */
+export function useRegister() {
+  return useMutation({
+    mutationFn: authApi.register,
+  });
+}
+
+/**
+ * Hook for logout
+ */
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+/**
+ * Hook for getting current user
+ */
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: ['user'],
+    queryFn: authApi.getCurrentUser,
+    enabled: !!localStorage.getItem('JWT_TOKEN'),
+    staleTime: 1000 * 60 * 10,
+  });
+}
 
 export default authApi;
