@@ -7,19 +7,15 @@ const { Content } = Layout;
 
 /**
  * AdminLayout
- * Layout for admin dashboard.
- * - Fixed sidebar on the left (AdminSidebar component)
- * - No top navbar — sidebar handles all navigation
- * - Content area with margin-left to avoid sidebar overlap
+ * Dedicated layout for admin dashboard with fixed sidebar navigation.
+ * No top navbar — all navigation lives in AdminSidebar.
  */
 export function AdminLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const siderWidth = collapsed ? 80 : 250;
-
   return (
     <Layout className="admin-layout" style={{ minHeight: '100vh' }}>
-      {/* Fixed Sidebar */}
+      {/* Fixed Sidebar (AdminSidebar component) */}
       <AdminSidebar
         collapsed={collapsed}
         onCollapse={() => setCollapsed(!collapsed)}
@@ -28,8 +24,8 @@ export function AdminLayout({ children }) {
       {/* Main Content — offset by sidebar width */}
       <Layout
         style={{
-          marginLeft: siderWidth,
-          transition: 'margin-left 0.2s ease',
+          marginLeft: collapsed ? 80 : 250,
+          transition: 'margin-left 0.2s',
         }}
       >
         {/* Content Area */}
@@ -37,10 +33,6 @@ export function AdminLayout({ children }) {
           {children}
         </Content>
 
-        {/* Footer */}
-        <div className="admin-footer">
-          <p>&copy; 2026 Cinema Booking System - Admin Panel</p>
-        </div>
       </Layout>
     </Layout>
   );

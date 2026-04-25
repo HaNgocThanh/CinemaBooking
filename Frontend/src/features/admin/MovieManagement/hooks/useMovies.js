@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { keepPreviousData } from '@tanstack/react-query';
 import { movieAdminApi } from '../api/movieAdminApi';
 
 /**
  * Custom Hook: useMovies
  * Manages movie list state, pagination, filtering, and mutations
- * 
- * Response format from backend (after axiosClient unwrap):
- * { success: true, data: [MovieResponseDto...], message: "...", traceId: "..." }
  */
 export function useMovies() {
   const queryClient = useQueryClient();
@@ -29,7 +25,7 @@ export function useMovies() {
         sortBy,
         sortOrder,
       }),
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
   // Create movie mutation
@@ -56,16 +52,20 @@ export function useMovies() {
     },
   });
 
-  // Extract movies array from response
-  // Backend: { success: true, data: [...], message: "..." }
-  // axiosClient interceptor returns response.data → { success, data: [...], message }
-  const responseData = moviesQuery.data;
-  const moviesList = responseData?.data || [];
+  // Toggle movie status mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: (id) => movieAdminApi.toggleMovieStatus(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movies'] });
+    },
+  });
 
   return {
     // Data & Status
-    movies: moviesList,
-    total: moviesList.length,
+    // API response format: { success, data: [...movies], message, traceId }
+    // axiosClient interceptor already unwraps response.data, so we get the object above
+    movies: moviesQuery.data?.data || [],
+    total: moviesQuery.data?.data?.length || 0,
     isLoading: moviesQuery.isLoading,
     isError: moviesQuery.isError,
     error: moviesQuery.error,
@@ -76,7 +76,7 @@ export function useMovies() {
       pageSize,
       setPageNum,
       setPageSize,
-      total: moviesList.length,
+      total: moviesQuery.data?.data?.length || 0,
     },
     filters: {
       searchText,
@@ -91,11 +91,12 @@ export function useMovies() {
     createMovie: (data) => createMutation.mutateAsync(data),
     updateMovie: (id, data) => updateMutation.mutateAsync({ id, data }),
     deleteMovie: (id) => deleteMutation.mutateAsync(id),
+    toggleMovieStatus: (id) => toggleStatusMutation.mutateAsync(id),
 
     // Mutation states
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isTogglingStatus: toggleStatusMutation.isPending,
   };
 }
-

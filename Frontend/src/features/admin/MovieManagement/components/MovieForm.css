@@ -5,33 +5,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.movie-form :global(.ant-form-item) {
+.movie-form .ant-form-item {
   margin-bottom: 16px;
 }
 
-.movie-form :global(.ant-form-item-label > label) {
+.movie-form .ant-form-item-label>label {
   font-weight: 500;
   color: #262626;
 }
 
-.movie-form :global(.ant-input),
-.movie-form :global(.ant-input-number),
-.movie-form :global(.ant-select) {
+.movie-form .ant-input,
+.movie-form .ant-input-number,
+.movie-form .ant-select {
   border-radius: 4px;
-}
-
-.poster-upload {
-  border: 2px dashed #d9d9d9;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-  background: #fafafa;
-  transition: all 0.3s ease;
-}
-
-.poster-upload:hover {
-  border-color: #40a9ff;
-  background: #f0f7ff;
 }
 
 .poster-preview {
@@ -47,6 +33,16 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+.poster-placeholder {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px 16px;
+  text-align: center;
+  background: #fafafa;
+  color: #bfbfbf;
+  font-size: 14px;
+}
+
 .movie-form-actions {
   margin-top: 24px;
   padding-top: 16px;
@@ -56,9 +52,5 @@
 @media (max-width: 768px) {
   .movie-form {
     padding: 16px;
-  }
-
-  .poster-upload {
-    padding: 12px;
   }
 }

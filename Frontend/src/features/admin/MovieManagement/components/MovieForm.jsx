@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Button, Upload, Row, Col, Spin, Tag } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Select, Button, Row, Col, Spin, Tag, DatePicker, Switch } from 'antd';
+import dayjs from 'dayjs';
 import './MovieForm.css';
 
-const { TextArea } = Input;
-
 /**
- * Genre options for Select component
+ * Genre options for movie selection
  */
 const genreOptions = [
   { label: 'Hành Động', value: 'action' },
@@ -20,15 +18,19 @@ const genreOptions = [
 ];
 
 /**
+ * Rating code options (MPAA-style)
+ */
+const ratingCodeOptions = [
+  { label: 'P - Phổ biến', value: 'P' },
+  { label: 'C13 - Cấm dưới 13 tuổi', value: 'C13' },
+  { label: 'C16 - Cấm dưới 16 tuổi', value: 'C16' },
+  { label: 'C18 - Cấm dưới 18 tuổi', value: 'C18' },
+];
+
+/**
  * MovieForm Component
- * Uses Ant Design Form API for proper form handling.
- * 
- * Props:
- * - initialData: object | null - Movie data for editing
- * - loading: boolean - Show loading spinner
- * - onSubmit: (formData) => Promise - Form submission handler
- * - onCancel: () => void - Cancel handler
- * - isViewOnly: boolean - Disable all fields for view mode
+ * Uses Ant Design Form (instead of react-hook-form) for full compatibility
+ * with Ant Design input components (Select, InputNumber, DatePicker, etc.)
  */
 export function MovieForm({
   initialData = null,
@@ -39,23 +41,31 @@ export function MovieForm({
 }) {
   const [form] = Form.useForm();
 
-  // Reset form when initialData changes
+  // Populate form when initialData changes (edit mode)
   useEffect(() => {
     if (initialData) {
       form.setFieldsValue({
         ...initialData,
-        releaseDate: initialData.releaseDate
-          ? initialData.releaseDate.split('T')[0]
-          : undefined,
+        releaseDate: initialData.releaseDate ? dayjs(initialData.releaseDate) : null,
+        endDate: initialData.endDate ? dayjs(initialData.endDate) : null,
       });
     } else {
       form.resetFields();
     }
   }, [initialData, form]);
 
+  /**
+   * Handle form submission — convert DatePicker values to ISO strings
+   * and send to parent via onSubmit callback
+   */
   const handleFinish = async (values) => {
+    const payload = {
+      ...values,
+      releaseDate: values.releaseDate ? values.releaseDate.toISOString() : null,
+      endDate: values.endDate ? values.endDate.toISOString() : null,
+    };
     try {
-      await onSubmit(values);
+      await onSubmit(payload);
     } catch (error) {
       console.error('Form submission error:', error);
     }
@@ -69,16 +79,21 @@ export function MovieForm({
         onFinish={handleFinish}
         className="movie-form"
         initialValues={{
+          title: '',
+          description: '',
           genre: 'action',
           durationMinutes: 120,
-          rating: 0,
+          ratingCode: 'P',
+          director: '',
+          cast: '',
+          posterUrl: '',
+          trailerUrl: '',
           isActive: true,
           isFeatured: false,
-          releaseDate: new Date().toISOString().split('T')[0],
         }}
         disabled={isViewOnly}
       >
-        <Row gutter={[16, 16]}>
+        <Row gutter={[16, 0]}>
           {/* Left Column */}
           <Col xs={24} md={14}>
             {/* Title */}
@@ -97,12 +112,9 @@ export function MovieForm({
             <Form.Item
               name="description"
               label="Mô Tả"
-              rules={[
-                { required: true, message: 'Mô tả là bắt buộc' },
-                { min: 10, message: 'Mô tả ít nhất 10 ký tự' },
-              ]}
+              rules={[{ min: 10, message: 'Mô tả ít nhất 10 ký tự' }]}
             >
-              <TextArea rows={4} placeholder="Nhập mô tả về phim" />
+              <Input.TextArea rows={4} placeholder="Nhập mô tả về phim" />
             </Form.Item>
 
             {/* Genre & Release Date */}
@@ -113,10 +125,7 @@ export function MovieForm({
                   label="Thể Loại"
                   rules={[{ required: true, message: 'Thể loại là bắt buộc' }]}
                 >
-                  <Select
-                    placeholder="Chọn thể loại"
-                    options={genreOptions}
-                  />
+                  <Select placeholder="Chọn thể loại" options={genreOptions} />
                 </Form.Item>
               </Col>
 
@@ -126,7 +135,7 @@ export function MovieForm({
                   label="Ngày Khởi Chiếu"
                   rules={[{ required: true, message: 'Ngày khởi chiếu là bắt buộc' }]}
                 >
-                  <Input type="date" />
+                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
                 </Form.Item>
               </Col>
             </Row>
@@ -150,7 +159,7 @@ export function MovieForm({
               </Col>
             </Row>
 
-            {/* Duration & Rating */}
+            {/* Duration & Rating Code */}
             <Row gutter={16}>
               <Col xs={24} sm={12}>
                 <Form.Item
@@ -158,112 +167,80 @@ export function MovieForm({
                   label="Thời Lượng (phút)"
                   rules={[
                     { required: true, message: 'Thời lượng là bắt buộc' },
-                    { type: 'number', min: 30, message: 'Thời lượng ít nhất 30 phút' },
-                    { type: 'number', max: 300, message: 'Thời lượng tối đa 300 phút' },
+                    { type: 'number', min: 30, message: 'Ít nhất 30 phút' },
+                    { type: 'number', max: 300, message: 'Tối đa 300 phút' },
                   ]}
                 >
-                  <InputNumber
-                    min={30}
-                    max={300}
-                    placeholder="120"
-                    style={{ width: '100%' }}
-                  />
+                  <InputNumber min={30} max={300} placeholder="120" style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
 
               <Col xs={24} sm={12}>
-                <Form.Item
-                  name="rating"
-                  label="Đánh Giá (0-10)"
-                  rules={[
-                    { type: 'number', min: 0, message: 'Đánh giá không được âm' },
-                    { type: 'number', max: 10, message: 'Đánh giá tối đa 10' },
-                  ]}
-                >
-                  <InputNumber
-                    min={0}
-                    max={10}
-                    step={0.1}
-                    placeholder="0"
-                    style={{ width: '100%' }}
-                  />
+                <Form.Item name="ratingCode" label="Xếp Hạng">
+                  <Select placeholder="Chọn xếp hạng" options={ratingCodeOptions} />
                 </Form.Item>
               </Col>
             </Row>
+
+            {/* Language */}
+            <Form.Item name="language" label="Ngôn Ngữ">
+              <Input placeholder="VD: Tiếng Việt, English" />
+            </Form.Item>
           </Col>
 
-          {/* Right Column: Poster & Status */}
+          {/* Right Column: Poster & Meta */}
           <Col xs={24} md={10}>
             {/* Poster URL */}
-            <Form.Item name="posterUrl" label="URL Poster (Ảnh Dọc)">
-              <Input placeholder="Nhập URL hình ảnh poster dọc (tỉ lệ 2:3)" />
+            <Form.Item name="posterUrl" label="URL Poster">
+              <Input placeholder="https://example.com/poster.jpg" />
             </Form.Item>
 
             {/* Poster Preview */}
-            <Form.Item noStyle shouldUpdate={(prev, cur) => prev.posterUrl !== cur.posterUrl}>
-              {({ getFieldValue }) => {
-                const url = getFieldValue('posterUrl');
-                return url ? (
-                  <div className="poster-preview" style={{ marginBottom: 16 }}>
-                    <img src={url} alt="Poster Preview" />
-                  </div>
-                ) : null;
-              }}
+            <Form.Item label="Xem Trước Poster">
+              <Form.Item noStyle shouldUpdate={(prev, cur) => prev.posterUrl !== cur.posterUrl}>
+                {({ getFieldValue }) => {
+                  const url = getFieldValue('posterUrl');
+                  return url ? (
+                    <div className="poster-preview">
+                      <img src={url} alt="Poster Preview" />
+                    </div>
+                  ) : (
+                    <div className="poster-placeholder">Chưa có poster</div>
+                  );
+                }}
+              </Form.Item>
             </Form.Item>
 
-            {/* Poster File Upload */}
-            <Form.Item label="Hoặc Tải Lên Poster">
-              <div className="poster-upload">
-                <Upload
-                  name="posterFile"
-                  listType="picture"
-                  maxCount={1}
-                  accept="image/*"
-                  beforeUpload={() => false}
-                >
-                  <Button icon={<UploadOutlined />}>
-                    Chọn Hình Ảnh
-                  </Button>
-                </Upload>
-              </div>
+            {/* Trailer URL */}
+            <Form.Item name="trailerUrl" label="URL Trailer">
+              <Input placeholder="https://youtube.com/watch?v=..." />
             </Form.Item>
 
             {/* Banner URL */}
-            <Form.Item name="bannerUrl" label="URL Banner (Ảnh Ngang)">
-              <Input placeholder="Nhập URL hình ảnh banner ngang (tỉ lệ 16:9)" />
+            <Form.Item name="bannerUrl" label="URL Banner">
+              <Input placeholder="https://example.com/banner.jpg" />
             </Form.Item>
 
-            {/* Banner Preview */}
-            <Form.Item noStyle shouldUpdate={(prev, cur) => prev.bannerUrl !== cur.bannerUrl}>
-              {({ getFieldValue }) => {
-                const url = getFieldValue('bannerUrl');
-                return url ? (
-                  <div className="poster-preview" style={{ marginBottom: 16 }}>
-                    <img src={url} alt="Banner Preview" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '8px' }} />
-                  </div>
-                ) : null;
-              }}
+            {/* End Date */}
+            <Form.Item name="endDate" label="Ngày Kết Thúc">
+              <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
             </Form.Item>
 
             {/* Status */}
             <Row gutter={16}>
-              <Col xs={12}>
-                <Form.Item name="isActive" label="Trạng Thái">
-                  <Select
-                    options={[
-                      { label: <Tag color="green">Đang Chiếu</Tag>, value: true },
-                      { label: <Tag color="red">Dừng Chiếu</Tag>, value: false },
-                    ]}
+              <Col span={12}>
+                <Form.Item name="isActive" label="Trạng Thái" valuePropName="checked">
+                  <Switch
+                    checkedChildren="Đang Chiếu"
+                    unCheckedChildren="Dừng"
                   />
                 </Form.Item>
               </Col>
-              <Col xs={12}>
-                <Form.Item name="isFeatured" label="Phim Nổi Bật">
-                  <Select
-                    options={[
-                      { label: <Tag color="gold">Có</Tag>, value: true },
-                      { label: <Tag color="default">Không</Tag>, value: false },
-                    ]}
+              <Col span={12}>
+                <Form.Item name="isFeatured" label="Nổi Bật" valuePropName="checked">
+                  <Switch
+                    checkedChildren="Có"
+                    unCheckedChildren="Không"
                   />
                 </Form.Item>
               </Col>

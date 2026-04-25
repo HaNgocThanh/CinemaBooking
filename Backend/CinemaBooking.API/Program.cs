@@ -45,23 +45,8 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = "Role"
     };
 
-    // Lỗi xác thực chi tiết (cho development)
-    if (builder.Environment.IsDevelopment())
-    {
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                if (context.Exception is SecurityTokenExpiredException)
-                {
-                    context.Response.StatusCode = 401;
-                    context.Response.ContentType = "application/json";
-                    return context.Response.WriteAsync("{\"error\": \"Token expired\"}");
-                }
-                return Task.CompletedTask;
-            }
-        };
-    }
+    // 🚫 REMOVED: Do not write to response in JWT events to avoid "Headers are read-only" errors
+    // Exception middleware will handle all exception responses consistently
 });
 
 // Add services to the container

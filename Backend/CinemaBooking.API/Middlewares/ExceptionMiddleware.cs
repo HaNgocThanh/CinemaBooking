@@ -2,6 +2,7 @@ using CinemaBooking.Application.DTOs.Common;
 using ApplicationException = CinemaBooking.Application.Exceptions.ApplicationException;
 using CinemaBooking.Application.Exceptions;
 using CinemaBooking.Domain.Exceptions;
+using Microsoft.IdentityModel.Tokens;
 using System.Net;
 using System.Text.Json;
 
@@ -39,6 +40,17 @@ public class ExceptionMiddleware
     /// </summary>
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        // ⚠️ Check if response has already started before setting headers
+        if (context.Response.HasStarted)
+        {
+            _logger.LogError(
+                exception,
+                "Exception occurred after response started. Cannot modify headers. TraceId: {TraceId}",
+                context.TraceIdentifier
+            );
+            return Task.CompletedTask;
+        }
+
         context.Response.ContentType = "application/json";
 
         var traceId = context.TraceIdentifier;
@@ -89,6 +101,35 @@ public class ExceptionMiddleware
                 iseaEx.Code,
                 iseaEx.UserMessage,
                 new Dictionary<string, object> { { "reason", "invalid_seats_selection" } }
+            ),
+
+            // ===== Authentication & Authorization Exceptions =====
+            SecurityTokenExpiredException steEx => (
+                HttpStatusCode.Unauthorized, // 401
+                "TOKEN_EXPIRED",
+                "JWT Token đã hết hạn. Vui lòng đăng nhập lại.",
+                new Dictionary<string, object> { { "reason", "token_expired" } }
+            ),
+
+            SecurityTokenInvalidSignatureException stsEx => (
+                HttpStatusCode.Unauthorized, // 401
+                "INVALID_TOKEN",
+                "JWT Token không hợp lệ.",
+                new Dictionary<string, object> { { "reason", "invalid_signature" } }
+            ),
+
+            SecurityTokenException stkEx => (
+                HttpStatusCode.Unauthorized, // 401
+                "AUTHENTICATION_FAILED",
+                "Xác thực không thành công.",
+                new Dictionary<string, object> { { "reason", "authentication_error" } }
+            ),
+
+            UnauthorizedAccessException uaaEx => (
+                HttpStatusCode.Forbidden, // 403
+                "ACCESS_DENIED",
+                "Bạn không có quyền truy cập tài nguyên này.",
+                new Dictionary<string, object> { { "reason", "insufficient_permissions" } }
             ),
 
             // ===== Generic Application Exception =====

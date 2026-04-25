@@ -33,15 +33,25 @@ export default function HomePage() {
   const error = activeTab === 'now-showing' ? errorNow : errorSoon;
   const currentMovies = activeTab === 'now-showing' ? nowShowingMovies : comingSoonMovies;
 
-  // Featured movie - Lấy phim IsFeatured từ nowShowing, nếu không có thì lấy phim đầu tiên
-  const featuredMovie = nowShowingMovies.find(m => m.isFeatured) || nowShowingMovies[0] || {
-    id: 0,
-    title: 'Đang tải phim...',
-    description: 'Vui lòng chờ.',
-    durationMinutes: 0,
-    bannerUrl: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1920&h=1080&fit=crop',
-    posterUrl: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1920&h=1080&fit=crop',
-  };
+  // Featured movies - Lấy tất cả phim có IsFeatured từ nowShowing
+  let featuredMovies = nowShowingMovies.filter(m => m.isFeatured);
+  
+  // Nếu không có phim nổi bật nào, lấy 3 phim đầu tiên
+  if (featuredMovies.length === 0 && nowShowingMovies.length > 0) {
+    featuredMovies = nowShowingMovies.slice(0, 3);
+  }
+
+  // Nếu vẫn không có phim (đang tải hoặc lỗi), dùng mảng mặc định
+  if (featuredMovies.length === 0) {
+    featuredMovies = [{
+      id: 0,
+      title: 'Đang tải phim...',
+      description: 'Vui lòng chờ.',
+      durationMinutes: 0,
+      bannerUrl: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1920&h=1080&fit=crop',
+      posterUrl: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1920&h=1080&fit=crop',
+    }];
+  }
 
   const handleBuyTicket = (movieId) => {
     console.log(`Navigate to showtime for movie ${movieId}`);
@@ -63,8 +73,8 @@ export default function HomePage() {
       {/* Navigation */}
       <Navbar />
 
-      {/* Hero Section - Full Screen */}
-      <HeroSection featuredMovie={featuredMovie} />
+      {/* Hero Section - Full Screen Carousel */}
+      <HeroSection featuredMovies={featuredMovies} />
 
       {/* Main Content Area */}
       <main className="relative z-10 w-full bg-slate-950">

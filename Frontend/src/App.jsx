@@ -1,9 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import queryClient from './config/queryClient';
 import { AuthProvider } from './context/AuthContext';
 import { MainLayout, AdminLayout } from './layouts';
-import { HomePage, MoviesPage } from './pages';
+import { HomePage } from './pages';
 import LoginPage from './pages/auth/LoginPage';
 import AdminMovieManagementPage from './pages/admin/MovieManagementPage';
 import './App.css';
@@ -22,7 +22,6 @@ import './App.css';
  * /showtimes                → ShowtimesPage
  * 
  * Admin Routes (AdminLayout):
- * /admin                    → Redirect to /admin/movies
  * /admin/movies             → Movie Management
  * /admin/showtimes          → Showtime Management
  * /admin/bookings           → Booking Management
@@ -46,7 +45,7 @@ function App() {
                 <MainLayout>
                   <Routes>
                     {/* <Route path="/register" element={<RegisterPage />} /> */}
-                    <Route path="/movies" element={<MoviesPage />} />
+                    {/* <Route path="/movies" element={<MoviesPage />} /> */}
                     {/* <Route path="/bookings" element={<BookingsPage />} /> */}
                     {/* <Route path="/showtimes" element={<ShowtimesPage />} /> */}
                     {/* <Route path="/cinemas" element={<CinemasPage />} /> */}
@@ -62,14 +61,12 @@ function App() {
               element={
                 <AdminLayout>
                   <Routes>
-                    {/* Default: redirect /admin → /admin/movies */}
-                    <Route index element={<Navigate to="/admin/movies" replace />} />
-                    <Route path="movies" element={<AdminMovieManagementPage />} />
-                    {/* <Route path="showtimes" element={<AdminShowtimeManagementPage />} /> */}
-                    {/* <Route path="bookings" element={<AdminBookingManagementPage />} /> */}
-                    {/* <Route path="promotions" element={<AdminPromotionManagementPage />} /> */}
-                    {/* <Route path="users" element={<AdminUserManagementPage />} /> */}
-                    {/* <Route path="settings" element={<AdminSettingsPage />} /> */}
+                    <Route path="/movies" element={<AdminMovieManagementPage />} />
+                    {/* <Route path="/showtimes" element={<AdminShowtimeManagementPage />} /> */}
+                    {/* <Route path="/bookings" element={<AdminBookingManagementPage />} /> */}
+                    {/* <Route path="/promotions" element={<AdminPromotionManagementPage />} /> */}
+                    {/* <Route path="/users" element={<AdminUserManagementPage />} /> */}
+                    {/* <Route path="/settings" element={<AdminSettingsPage />} /> */}
                   </Routes>
                 </AdminLayout>
               }

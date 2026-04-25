@@ -99,11 +99,15 @@ export function MovieList({
       ),
     },
     {
-      title: 'Đánh Giá',
-      dataIndex: 'rating',
-      key: 'rating',
+      title: 'Xếp Hạng',
+      dataIndex: 'ratingCode',
+      key: 'ratingCode',
       width: 80,
-      render: (rating) => `${rating?.toFixed(1) || 'N/A'} / 10`,
+      render: (ratingCode) => (
+        <Tag color={ratingCode === 'C18' ? 'red' : ratingCode === 'C16' ? 'orange' : 'blue'}>
+          {ratingCode || 'N/A'}
+        </Tag>
+      ),
     },
     {
       title: 'Hành Động',

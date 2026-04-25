@@ -90,7 +90,8 @@ export function AdminSidebar({ collapsed, onCollapse }) {
         bottom: 0,
         height: '100vh',
         zIndex: 100,
-        overflow: 'auto',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
       {/* Logo + Toggle */}
