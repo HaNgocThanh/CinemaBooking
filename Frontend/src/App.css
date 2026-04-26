@@ -182,3 +182,46 @@
     border-right-color: var(--border);
   }
 }
+
+/* ===== MovieDetailsPage - Showtime Tabs ===== */
+.custom-showtime-tabs .ant-tabs-tab {
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  transition: color 0.2s, background 0.2s;
+}
+
+.custom-showtime-tabs .ant-tabs-tab:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.custom-showtime-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #f43f5e !important;
+  font-weight: 700;
+}
+
+.custom-showtime-tabs .ant-tabs-ink-bar {
+  background: #f43f5e;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+.custom-showtime-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+/* Trailer modal overlay */
+.trailer-modal .ant-modal-content {
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.trailer-modal .ant-modal-close {
+  color: #fff;
+  top: 8px;
+  right: 8px;
+}
+

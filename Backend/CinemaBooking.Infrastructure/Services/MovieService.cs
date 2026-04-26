@@ -202,4 +202,60 @@ public class MovieService : IMovieService
         _context.Movies.Remove(movie);
         await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Lay chi tiet phim kem danh sach suat chieu nhom theo ngay.
+    /// </summary>
+    public async Task<MovieDetailsResponseDto?> GetMovieDetailsWithShowtimesAsync(int movieId)
+    {
+        var movie = await _context.Movies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == movieId);
+
+        if (movie == null)
+            return null;
+
+        var now = DateTime.UtcNow;
+
+        var showtimes = await _context.Showtimes
+            .Where(s => s.MovieId == movieId && s.StartTime > now && s.IsActive)
+            .OrderBy(s => s.StartTime)
+            .ToListAsync();
+
+        var roomIds = showtimes.Select(s => s.RoomId).Distinct().ToList();
+        var rooms = await _context.Rooms
+            .Where(r => roomIds.Contains(r.Id))
+            .ToDictionaryAsync(r => r.Id);
+
+        var groups = showtimes
+            .GroupBy(s => s.StartTime.ToString("dd/MM/yyyy"))
+            .Select(g => new ShowtimeGroupDto
+            {
+                Date = g.Key,
+                Showtimes = g.Select(s => new ShowtimeDto
+                {
+                    Id = s.Id,
+                    StartTime = s.StartTime,
+                    EndTime = s.EndTime,
+                    BasePrice = s.BasePrice,
+                    RoomName = rooms.TryGetValue(s.RoomId, out var r) ? r.Name : "",
+                    RoomType = rooms.TryGetValue(s.RoomId, out r) ? r.Type : "",
+                    AvailableSeats = s.TotalSeats - s.BookedSeatsCount
+                }).ToList()
+            })
+            .ToList();
+
+        return new MovieDetailsResponseDto
+        {
+            Id = movie.Id,
+            Title = movie.Title,
+            Description = movie.Description,
+            DurationMinutes = movie.DurationMinutes,
+            PosterUrl = movie.PosterUrl,
+            BannerUrl = movie.BannerUrl,
+            TrailerUrl = movie.TrailerUrl,
+            Status = movie.Status.ToString(),
+            ShowtimeGroups = groups
+        };
+    }
 }

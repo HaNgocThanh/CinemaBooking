@@ -10,10 +10,9 @@ export function MainLayout({ children }) {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1 bg-gray-50">
-        <div className="max-w-7xl mx-auto p-4">
-          {children}
-        </div>
+      <main className="flex-1 bg-slate-900">
+        {children}
+        <Outlet />
       </main>
 
       <footer className="bg-gray-800 text-white p-4">

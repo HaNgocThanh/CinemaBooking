@@ -856,4 +856,274 @@ public class MovieServiceTests
     }
 
     #endregion
+
+    #region === GetMovieDetailsWithShowtimesAsync - Tests ===
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_ExistingMovie_ReturnsMovieWithShowtimeGroups()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phòng 01", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+        await _dbContext.SaveChangesAsync();
+
+        var movie = new Movie
+        {
+            Title = "Avengers: Endgame",
+            Description = "Epic superhero film",
+            Director = "Russo Brothers",
+            DurationMinutes = 180,
+            PosterUrl = "https://example.com/avengers.jpg",
+            BannerUrl = "https://example.com/avengers-banner.jpg",
+            TrailerUrl = "https://youtube.com/avengers",
+            Status = MovieStatus.NowShowing,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        // Navigation property must be set for in-memory to load it
+        var showtimes = new[]
+        {
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = DateTime.UtcNow.AddHours(2), EndTime = DateTime.UtcNow.AddHours(4), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 5, IsActive = true, Room = room },
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = DateTime.UtcNow.AddHours(5), EndTime = DateTime.UtcNow.AddHours(7), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true, Room = room }
+        };
+        _dbContext.Showtimes.AddRange(showtimes);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.Title.Should().Be("Avengers: Endgame");
+        result.Description.Should().Be("Epic superhero film");
+        result.DurationMinutes.Should().Be(180);
+        result.Status.Should().Be("NowShowing");
+        result.ShowtimeGroups.Should().HaveCount(1);
+        result.ShowtimeGroups[0].Showtimes.Should().HaveCount(2);
+        result.ShowtimeGroups[0].Showtimes.Should().Contain(s => s.AvailableSeats == 15);
+        result.ShowtimeGroups[0].Showtimes.Should().Contain(s => s.AvailableSeats == 20);
+        result.ShowtimeGroups[0].Showtimes.All(s => s.RoomName == "Phòng 01").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_NonExistingMovie_ReturnsNull()
+    {
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(999);
+
+        // ========== ASSERT ==========
+        result.Should().BeNull();
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_MovieWithNoShowtimes_ReturnsEmptyGroups()
+    {
+        // ========== ARRANGE ==========
+        var movie = new Movie
+        {
+            Title = "No Showtime Movie",
+            Description = "This movie has no upcoming showtimes",
+            Director = "Unknown",
+            DurationMinutes = 90,
+            IsActive = true,
+            Status = MovieStatus.ComingSoon,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.Title.Should().Be("No Showtime Movie");
+        result.ShowtimeGroups.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_ExcludesPastShowtimes()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phòng 01", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+        await _dbContext.SaveChangesAsync();
+
+        var movie = new Movie
+        {
+            Title = "Movie With Past Showtimes",
+            IsActive = true,
+            Status = MovieStatus.NowShowing,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        var futureSt = new Showtime
+        {
+            MovieId = movie.Id, RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddHours(3), EndTime = DateTime.UtcNow.AddHours(5),
+            BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true,
+            Room = room
+        };
+        var pastSt = new Showtime
+        {
+            MovieId = movie.Id, RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddHours(-5), EndTime = DateTime.UtcNow.AddHours(-3),
+            BasePrice = 70000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true,
+            Room = room
+        };
+        _dbContext.Showtimes.AddRange(futureSt, pastSt);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.ShowtimeGroups.Should().HaveCount(1);
+        result.ShowtimeGroups[0].Showtimes.Should().HaveCount(1);
+        result.ShowtimeGroups[0].Showtimes[0].BasePrice.Should().Be(80000);
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_MultipleDaysGroupedCorrectly()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phòng 01", Capacity = 20, Type = "3D" };
+        _dbContext.Rooms.Add(room);
+        await _dbContext.SaveChangesAsync();
+
+        var movie = new Movie
+        {
+            Title = "Long Running Movie",
+            IsActive = true,
+            Status = MovieStatus.NowShowing,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        var vietnamTz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var nowVn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTz);
+        var todayVn = new DateTime(nowVn.Year, nowVn.Month, nowVn.Day, 14, 0, 0, DateTimeKind.Unspecified);
+
+        var day1Utc = TimeZoneInfo.ConvertTimeToUtc(todayVn.AddDays(0), vietnamTz).AddHours(2);
+        var day1bUtc = TimeZoneInfo.ConvertTimeToUtc(todayVn.AddDays(0), vietnamTz).AddHours(5);
+        var day2Utc = TimeZoneInfo.ConvertTimeToUtc(todayVn.AddDays(1), vietnamTz).AddHours(2);
+        var day3Utc = TimeZoneInfo.ConvertTimeToUtc(todayVn.AddDays(2), vietnamTz).AddHours(2);
+
+        var showtimes = new[]
+        {
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = day1Utc, EndTime = day1Utc.AddHours(2), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true, Room = room },
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = day1bUtc, EndTime = day1bUtc.AddHours(2), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true, Room = room },
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = day2Utc, EndTime = day2Utc.AddHours(2), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true, Room = room },
+            new Showtime { MovieId = movie.Id, RoomId = room.Id, StartTime = day3Utc, EndTime = day3Utc.AddHours(2), BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true, Room = room }
+        };
+        _dbContext.Showtimes.AddRange(showtimes);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.ShowtimeGroups.Should().HaveCount(3);
+        result.ShowtimeGroups.All(g => g.Showtimes.All(s => s.RoomName == "Phòng 01" && s.RoomType == "3D")).Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_ShowtimeContainsRoomInfo()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phòng IMAX", Capacity = 50, Type = "IMAX" };
+        _dbContext.Rooms.Add(room);
+        await _dbContext.SaveChangesAsync();
+
+        var movie = new Movie
+        {
+            Title = "IMAX Movie",
+            IsActive = true,
+            Status = MovieStatus.NowShowing,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        var showtime = new Showtime
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddHours(1),
+            EndTime = DateTime.UtcNow.AddHours(3),
+            BasePrice = 150000,
+            TotalSeats = 50,
+            BookedSeatsCount = 10,
+            IsActive = true,
+            Room = room
+        };
+        _dbContext.Showtimes.Add(showtime);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.ShowtimeGroups.Should().HaveCount(1);
+        var st = result.ShowtimeGroups[0].Showtimes[0];
+        st.RoomName.Should().Be("Phòng IMAX");
+        st.RoomType.Should().Be("IMAX");
+        st.BasePrice.Should().Be(150000);
+        st.AvailableSeats.Should().Be(40);
+    }
+
+    [Test]
+    public async Task GetMovieDetailsWithShowtimesAsync_ExcludesInactiveShowtimes()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phòng 01", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+        await _dbContext.SaveChangesAsync();
+
+        var movie = new Movie
+        {
+            Title = "Movie With Mixed Showtimes",
+            IsActive = true,
+            Status = MovieStatus.NowShowing,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+        await _dbContext.SaveChangesAsync();
+
+        var activeSt = new Showtime
+        {
+            MovieId = movie.Id, RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddHours(1), EndTime = DateTime.UtcNow.AddHours(3),
+            BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = true,
+            Room = room
+        };
+        var inactiveSt = new Showtime
+        {
+            MovieId = movie.Id, RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddHours(4), EndTime = DateTime.UtcNow.AddHours(6),
+            BasePrice = 80000, TotalSeats = 20, BookedSeatsCount = 0, IsActive = false,
+            Room = room
+        };
+        _dbContext.Showtimes.AddRange(activeSt, inactiveSt);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(movie.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.ShowtimeGroups.Sum(g => g.Showtimes.Count).Should().Be(1);
+        result.ShowtimeGroups[0].Showtimes[0].RoomName.Should().Be("Phòng 01");
+    }
+
+    #endregion
 }

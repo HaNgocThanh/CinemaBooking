@@ -70,6 +70,35 @@ public class MoviesController : ControllerBase
         ));
     }
 
+    [HttpGet("{id}/showtimes")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiSuccessResponse<MovieDetailsResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<MovieDetailsResponseDto>>> GetMovieShowtimes([FromRoute] int id)
+    {
+        _logger.LogInformation("Fetching showtimes for movie ID: {MovieId}", id);
+
+        var result = await _movieService.GetMovieDetailsWithShowtimesAsync(id);
+
+        if (result == null)
+        {
+            _logger.LogWarning("Movie with ID {MovieId} not found", id);
+            return NotFound(new ApiErrorResponse(
+                code: "MOVIE_NOT_FOUND",
+                message: $"Phim voi ID {id} khong ton tai.",
+                httpStatus: 404,
+                details: null,
+                traceId: HttpContext.TraceIdentifier
+            ));
+        }
+
+        return Ok(new ApiSuccessResponse<MovieDetailsResponseDto>(
+            data: result,
+            message: $"Lay {result.ShowtimeGroups.Sum(g => g.Showtimes.Count)} suat chieu thanh cong.",
+            traceId: HttpContext.TraceIdentifier
+        ));
+    }
+
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiSuccessResponse<MovieResponseDto>), StatusCodes.Status201Created)]

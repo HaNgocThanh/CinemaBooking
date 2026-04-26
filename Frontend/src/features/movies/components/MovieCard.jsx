@@ -1,16 +1,23 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 /**
  * MovieCard Component - Premium Hover Animation
  * Uses framer-motion for smooth scale & overlay effects
- * 
+ *
  * Features:
  * - Image scale: 100% → 108% on hover (300ms)
  * - Smooth overlay fade (0% → 100%)
  * - CTA buttons with staggered animation
  */
 export function MovieCard({ movie, onBuyTicket, onWatchTrailer, isComingSoon = false }) {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/movies/${movie.id}`);
+  };
+
   const handleBuyTicket = (e) => {
     if (isComingSoon) return;
     e.stopPropagation();
@@ -31,6 +38,7 @@ export function MovieCard({ movie, onBuyTicket, onWatchTrailer, isComingSoon = f
           initial: { opacity: 1, y: 0 },
           hover: { opacity: 1, y: 0 },
         }}
+        onClick={handleCardClick}
         className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden group cursor-pointer"
       >
       {/* Poster Image with Scale Animation */}

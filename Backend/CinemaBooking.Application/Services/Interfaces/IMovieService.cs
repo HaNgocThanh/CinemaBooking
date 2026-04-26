@@ -45,4 +45,12 @@ public interface IMovieService
     /// <param name="movieId">ID phim cần xóa.</param>
     /// <exception cref="KeyNotFoundException">Nếu phim không tồn tại.</exception>
     Task DeleteMovieAsync(int movieId);
+
+    /// <summary>
+    /// Lay chi tiet phim kem danh sach suat chieu nhom theo ngay.
+    /// Chi lay cac suat chieu co StartTime > DateTime.UtcNow va IsActive = true.
+    /// </summary>
+    /// <param name="movieId">ID phim.</param>
+    /// <returns>MovieDetailsResponseDto neu tim thay, null neu khong.</returns>
+    Task<MovieDetailsResponseDto?> GetMovieDetailsWithShowtimesAsync(int movieId);
 }

@@ -2,9 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import queryClient from './config/queryClient';
 import { AuthProvider } from './context/AuthContext';
-import { MainLayout, AdminLayout } from './layouts';
+import { HomeLayout, AdminLayout } from './layouts';
 import { HomePage } from './pages';
 import LoginPage from './pages/auth/LoginPage';
+import MovieDetailsPage from './pages/customer/MovieDetailsPage';
 import AdminMovieManagementPage from './pages/admin/MovieManagementPage';
 import AdminShowtimeManagementPage from './pages/admin/ShowtimeManagementPage';
 import AdminRoomManagementPage from './pages/admin/RoomManagementPage';
@@ -40,12 +41,13 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Customer Routes - With MainLayout */}
+            {/* Customer Routes - With HomeLayout */}
             <Route
               path="/*"
               element={
-                <MainLayout>
+                <HomeLayout>
                   <Routes>
+                    <Route path="/movies/:id" element={<MovieDetailsPage />} />
                     {/* <Route path="/register" element={<RegisterPage />} /> */}
                     {/* <Route path="/movies" element={<MoviesPage />} /> */}
                     {/* <Route path="/bookings" element={<BookingsPage />} /> */}
@@ -53,7 +55,7 @@ function App() {
                     {/* <Route path="/cinemas" element={<CinemasPage />} /> */}
                     {/* <Route path="/promotions" element={<PromotionsPage />} /> */}
                   </Routes>
-                </MainLayout>
+                </HomeLayout>
               }
             />
 
