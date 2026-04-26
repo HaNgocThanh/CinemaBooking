@@ -104,7 +104,7 @@ public class ShowtimeFixture
     public static Showtime CreateValidShowtime(
         int? id = null,
         int movieId = 1,
-        string roomNumber = "A1",
+        int roomId = 1,
         decimal basePrice = 150000m,
         int totalSeats = 100)
     {
@@ -114,7 +114,7 @@ public class ShowtimeFixture
         {
             Id = showtimeId,
             MovieId = movieId,
-            RoomNumber = roomNumber,
+            RoomId = roomId,
             StartTime = startTime,
             EndTime = startTime.AddHours(2),
             BasePrice = basePrice,
@@ -135,7 +135,7 @@ public class ShowtimeFixture
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "B2",
+            RoomId = 1,
             StartTime = startTime,
             EndTime = startTime.AddHours(2.5),
             BasePrice = 120000m,
@@ -156,7 +156,7 @@ public class ShowtimeFixture
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "C3",
+            RoomId = 1,
             StartTime = startTime,
             EndTime = startTime.AddHours(2),
             BasePrice = 150000m,

@@ -46,4 +46,7 @@ public class CreateMovieDto
 
     /// <summary>Ngày kết thúc công chiếu.</summary>
     public DateTime? EndDate { get; set; }
+
+    /// <summary>Trạng thái phim (ComingSoon, NowShowing, Stopped). Mặc định: ComingSoon.</summary>
+    public string Status { get; set; } = "ComingSoon";
 }

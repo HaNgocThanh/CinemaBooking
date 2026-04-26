@@ -1,5 +1,7 @@
 namespace CinemaBooking.Domain.Entities;
 
+using CinemaBooking.Domain.Enums;
+
 /// <summary>
 /// Thực thể phim.
 /// </summary>
@@ -49,6 +51,9 @@ public class Movie
 
     /// <summary>Ngày phim kết thúc công chiếu.</summary>
     public DateTime? EndDate { get; set; }
+
+    /// <summary>Trang thai phim do Admin quan ly truc tiep (ComingSoon, NowShowing, Stopped).</summary>
+    public MovieStatus Status { get; set; } = MovieStatus.ComingSoon;
 
     /// <summary>Trạng thái phim (true = đang hoạt động, false = không).</summary>
     public bool IsActive { get; set; } = true;

@@ -1,23 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CinemaBooking.Application.DTOs.Common;
 using CinemaBooking.Application.DTOs.Movies;
 using CinemaBooking.Application.Services.Interfaces;
+using CinemaBooking.Domain.Entities;
+using CinemaBooking.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CinemaBooking.API.Controllers;
 
-/// <summary>
-/// Controller quản lý các endpoints liên quan đến phim (Movies).
-/// 
-/// Endpoints công khai:
-/// - GET /api/movies              - Danh sách phim
-/// - GET /api/movies/{id}         - Chi tiết phim
-/// 
-/// Endpoints chỉ dành cho Admin:
-/// - POST /api/movies             - Tạo phim
-/// - PUT /api/movies/{id}         - Cập nhật phim
-/// - DELETE /api/movies/{id}      - Xóa phim
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class MoviesController : ControllerBase
@@ -31,12 +25,6 @@ public class MoviesController : ControllerBase
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>
-    /// Lấy danh sách tất cả phim đang hoạt động.
-    /// 
-    /// Endpoint công khai - không cần JWT Token.
-    /// </summary>
-    /// <returns>200 OK - Danh sách MovieResponseDto</returns>
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiSuccessResponse<List<MovieResponseDto>>), StatusCodes.Status200OK)]
@@ -48,21 +36,11 @@ public class MoviesController : ControllerBase
 
         return Ok(new ApiSuccessResponse<List<MovieResponseDto>>(
             data: movies,
-            message: $"Lấy danh sách {movies.Count} phim thành công.",
+            message: $"Lay danh sach {movies.Count} phim thanh cong.",
             traceId: HttpContext.TraceIdentifier
         ));
     }
 
-    /// <summary>
-    /// Lấy chi tiết phim theo ID.
-    /// 
-    /// Endpoint công khai - không cần JWT Token.
-    /// </summary>
-    /// <param name="id">ID phim</param>
-    /// <returns>
-    /// 200 OK - Chi tiết phim
-    /// 404 Not Found - Phim không tồn tại
-    /// </returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiSuccessResponse<MovieResponseDto>), StatusCodes.Status200OK)]
@@ -78,7 +56,7 @@ public class MoviesController : ControllerBase
             _logger.LogWarning("Movie with ID {MovieId} not found", id);
             return NotFound(new ApiErrorResponse(
                 code: "MOVIE_NOT_FOUND",
-                message: $"Phim với ID {id} không tồn tại.",
+                message: $"Phim voi ID {id} khong ton tai.",
                 httpStatus: 404,
                 details: null,
                 traceId: HttpContext.TraceIdentifier
@@ -87,22 +65,11 @@ public class MoviesController : ControllerBase
 
         return Ok(new ApiSuccessResponse<MovieResponseDto>(
             data: movie,
-            message: "Lấy chi tiết phim thành công.",
+            message: "Lay chi tiet phim thanh cong.",
             traceId: HttpContext.TraceIdentifier
         ));
     }
 
-    /// <summary>
-    /// Tạo phim mới (dành cho Admin).
-    /// 
-    /// Endpoint bảo vệ bằng JWT Token - cần quyền Admin.
-    /// </summary>
-    /// <param name="request">CreateMovieDto</param>
-    /// <returns>
-    /// 201 Created - Phim được tạo thành công
-    /// 400 Bad Request - Request không hợp lệ
-    /// 401 Unauthorized - Không có JWT Token
-    /// </returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiSuccessResponse<MovieResponseDto>), StatusCodes.Status201Created)]
@@ -117,7 +84,7 @@ public class MoviesController : ControllerBase
         {
             return BadRequest(new ApiErrorResponse(
                 code: "VALIDATION_ERROR",
-                message: "Request không hợp lệ.",
+                message: "Request khong hop le.",
                 httpStatus: 400,
                 details: null,
                 traceId: HttpContext.TraceIdentifier
@@ -133,25 +100,12 @@ public class MoviesController : ControllerBase
             routeValues: new { id = movie.Id },
             value: new ApiSuccessResponse<MovieResponseDto>(
                 data: movie,
-                message: "Phim được tạo thành công.",
+                message: "Phim duoc tao thanh cong.",
                 traceId: HttpContext.TraceIdentifier
             )
         );
     }
 
-    /// <summary>
-    /// Cập nhật thông tin phim (dành cho Admin).
-    /// 
-    /// Endpoint bảo vệ bằng JWT Token - cần quyền Admin.
-    /// </summary>
-    /// <param name="id">ID phim cần cập nhật</param>
-    /// <param name="request">UpdateMovieDto</param>
-    /// <returns>
-    /// 200 OK - Phim được cập nhật thành công
-    /// 404 Not Found - Phim không tồn tại
-    /// 400 Bad Request - Request không hợp lệ
-    /// 401 Unauthorized - Không có JWT Token
-    /// </returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiSuccessResponse<MovieResponseDto>), StatusCodes.Status200OK)]
@@ -168,7 +122,7 @@ public class MoviesController : ControllerBase
         {
             return BadRequest(new ApiErrorResponse(
                 code: "VALIDATION_ERROR",
-                message: "Request không hợp lệ.",
+                message: "Request khong hop le.",
                 httpStatus: 400,
                 details: null,
                 traceId: HttpContext.TraceIdentifier
@@ -183,7 +137,7 @@ public class MoviesController : ControllerBase
 
             return Ok(new ApiSuccessResponse<MovieResponseDto>(
                 data: movie,
-                message: "Phim được cập nhật thành công.",
+                message: "Phim duoc cap nhat thanh cong.",
                 traceId: HttpContext.TraceIdentifier
             ));
         }
@@ -192,7 +146,7 @@ public class MoviesController : ControllerBase
             _logger.LogWarning("Movie with ID {MovieId} not found for update", id);
             return NotFound(new ApiErrorResponse(
                 code: "MOVIE_NOT_FOUND",
-                message: $"Phim với ID {id} không tồn tại.",
+                message: $"Phim voi ID {id} khong ton tai.",
                 httpStatus: 404,
                 details: null,
                 traceId: HttpContext.TraceIdentifier
@@ -200,17 +154,6 @@ public class MoviesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Xóa phim (dành cho Admin).
-    /// 
-    /// Endpoint bảo vệ bằng JWT Token - cần quyền Admin.
-    /// </summary>
-    /// <param name="id">ID phim cần xóa</param>
-    /// <returns>
-    /// 204 No Content - Phim được xóa thành công
-    /// 404 Not Found - Phim không tồn tại
-    /// 401 Unauthorized - Không có JWT Token
-    /// </returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -233,7 +176,7 @@ public class MoviesController : ControllerBase
             _logger.LogWarning("Movie with ID {MovieId} not found for delete", id);
             return NotFound(new ApiErrorResponse(
                 code: "MOVIE_NOT_FOUND",
-                message: $"Phim với ID {id} không tồn tại.",
+                message: $"Phim voi ID {id} khong ton tai.",
                 httpStatus: 404,
                 details: null,
                 traceId: HttpContext.TraceIdentifier

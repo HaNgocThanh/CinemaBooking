@@ -1,5 +1,7 @@
 namespace CinemaBooking.Application.DTOs.Movies;
 
+using CinemaBooking.Domain.Enums;
+
 /// <summary>
 /// DTO cho phim - dùng để trả về danh sách phim hoặc chi tiết phim.
 /// </summary>
@@ -44,8 +46,8 @@ public class MovieResponseDto
     /// <summary>Phim nổi bật.</summary>
     public bool IsFeatured { get; set; }
 
-    /// <summary>Trạng thái phim (now-showing / coming-soon).</summary>
-    public string? Status { get; set; }
+    /// <summary>Trạng thái phim do Admin quản lý (ComingSoon, NowShowing, Stopped).</summary>
+    public string Status { get; set; } = "ComingSoon";
 
     /// <summary>Ngày bắt đầu công chiếu.</summary>
     public DateTime? ReleaseDate { get; set; }

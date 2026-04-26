@@ -94,9 +94,9 @@ export const useMovies = (options = {}) => {
  */
 export const useNowShowingMovies = (options = {}) => {
   return useQuery({
-    queryKey: ['movies', 'now-showing'],
+    queryKey: ['movies', 'NowShowing'],
     queryFn: async () => {
-      const response = await movieApi.getAllMovies('now-showing');
+      const response = await movieApi.getAllMovies('NowShowing');
       return response || [];
     },
     staleTime: 5 * 60 * 1000,
@@ -111,9 +111,9 @@ export const useNowShowingMovies = (options = {}) => {
  */
 export const useComingSoonMovies = (options = {}) => {
   return useQuery({
-    queryKey: ['movies', 'coming-soon'],
+    queryKey: ['movies', 'ComingSoon'],
     queryFn: async () => {
-      const response = await movieApi.getAllMovies('coming-soon');
+      const response = await movieApi.getAllMovies('ComingSoon');
       return response || [];
     },
     staleTime: 5 * 60 * 1000,

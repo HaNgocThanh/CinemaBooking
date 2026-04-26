@@ -11,8 +11,8 @@ public class Showtime
     /// <summary>Định danh của phim liên quan (bắt buộc).</summary>
     public int MovieId { get; set; }
 
-    /// <summary>Số hiệu phòng chiếu (vd: "101", "A1" - tối đa 10 ký tự).</summary>
-    public required string RoomNumber { get; set; }
+    /// <summary>Định danh của phòng chiếu liên quan (bắt buộc).</summary>
+    public int RoomId { get; set; }
 
     /// <summary>Thời gian bắt đầu suất chiếu.</summary>
     public required DateTime StartTime { get; set; }
@@ -40,6 +40,7 @@ public class Showtime
 
     // Navigation properties
     public virtual Movie? Movie { get; set; }
+    public virtual Room? Room { get; set; }
     public ICollection<ShowtimeSeat> Seats { get; set; } = new List<ShowtimeSeat>();
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

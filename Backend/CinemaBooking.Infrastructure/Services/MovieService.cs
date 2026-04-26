@@ -1,6 +1,7 @@
 using CinemaBooking.Application.DTOs.Movies;
 using CinemaBooking.Application.Services.Interfaces;
 using CinemaBooking.Domain.Entities;
+using CinemaBooking.Domain.Enums;
 using CinemaBooking.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,18 +25,8 @@ public class MovieService : IMovieService
     /// <summary>
     /// Ánh xạ Movie entity → MovieResponseDto
     /// </summary>
-    private static MovieResponseDto MapToDto(Movie movie, DateTime today)
+    private static MovieResponseDto MapToDto(Movie movie)
     {
-        string? status = null;
-        if (movie.ReleaseDate > today)
-        {
-            status = "coming-soon";
-        }
-        else if (movie.ReleaseDate <= today && movie.Showtimes.Any(s => s.StartTime >= today && s.IsActive))
-        {
-            status = "now-showing";
-        }
-
         return new MovieResponseDto
         {
             Id = movie.Id,
@@ -51,7 +42,7 @@ public class MovieService : IMovieService
             TrailerUrl = movie.TrailerUrl,
             BannerUrl = movie.BannerUrl,
             IsFeatured = movie.IsFeatured,
-            Status = status,
+            Status = movie.Status.ToString(),
             ReleaseDate = movie.ReleaseDate,
             EndDate = movie.EndDate,
             IsActive = movie.IsActive,
@@ -65,31 +56,26 @@ public class MovieService : IMovieService
     /// </summary>
     public async Task<List<MovieResponseDto>> GetAllMoviesAsync(bool onlyActive = true, string? status = null)
     {
-        var query = _context.Movies.Include(m => m.Showtimes).AsQueryable();
+        var query = _context.Movies.AsQueryable();
 
         if (onlyActive)
         {
             query = query.Where(m => m.IsActive);
         }
 
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        if (status == "now-showing")
+        if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(m => m.ReleaseDate <= today && m.Showtimes.Any(s => s.StartTime >= today && s.IsActive));
-        }
-        else if (status == "coming-soon")
-        {
-            query = query.Where(m => m.ReleaseDate > today);
+            if (Enum.TryParse<MovieStatus>(status, true, out var movieStatus))
+            {
+                query = query.Where(m => m.Status == movieStatus);
+            }
         }
 
-        // Sắp xếp theo ReleaseDate (phim mới nhất trước)
         var movies = await query
             .OrderByDescending(m => m.ReleaseDate)
             .ToListAsync();
 
-        return movies.Select(m => MapToDto(m, today)).ToList();
+        return movies.Select(m => MapToDto(m)).ToList();
     }
 
     /// <summary>
@@ -106,10 +92,7 @@ public class MovieService : IMovieService
             return null;
         }
 
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        return MapToDto(movie, today);
+        return MapToDto(movie);
     }
 
     /// <summary>
@@ -117,6 +100,10 @@ public class MovieService : IMovieService
     /// </summary>
     public async Task<MovieResponseDto> CreateMovieAsync(CreateMovieDto request)
     {
+        var movieStatus = Enum.TryParse<MovieStatus>(request.Status, true, out var s)
+            ? s
+            : MovieStatus.ComingSoon;
+
         var movie = new Movie
         {
             Title = request.Title,
@@ -132,6 +119,7 @@ public class MovieService : IMovieService
             BannerUrl = request.BannerUrl,
             ReleaseDate = request.ReleaseDate,
             EndDate = request.EndDate,
+            Status = movieStatus,
             CreatedAt = DateTime.UtcNow,
             IsActive = true,
             IsFeatured = request.IsFeatured,
@@ -140,10 +128,7 @@ public class MovieService : IMovieService
         _context.Movies.Add(movie);
         await _context.SaveChangesAsync();
 
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        return MapToDto(movie, today);
+        return MapToDto(movie);
     }
 
     /// <summary>
@@ -190,16 +175,15 @@ public class MovieService : IMovieService
             movie.IsActive = request.IsActive.Value;
         if (request.IsFeatured.HasValue)
             movie.IsFeatured = request.IsFeatured.Value;
+        if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<MovieStatus>(request.Status, true, out var movieStatus))
+            movie.Status = movieStatus;
 
         movie.UpdatedAt = DateTime.UtcNow;
 
         _context.Movies.Update(movie);
         await _context.SaveChangesAsync();
 
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        return MapToDto(movie, today);
+        return MapToDto(movie);
     }
 
     /// <summary>

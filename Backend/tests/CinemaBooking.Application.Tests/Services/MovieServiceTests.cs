@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CinemaBooking.Application.DTOs.Movies;
 using CinemaBooking.Application.Exceptions;
 using CinemaBooking.Domain.Entities;
+using CinemaBooking.Domain.Enums;
 using CinemaBooking.Infrastructure.Data;
 using CinemaBooking.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -245,101 +246,82 @@ public class MovieServiceTests
     public async Task GetAllMoviesAsync_StatusNowShowing_ReturnsValidMovies()
     {
         // ========== ARRANGE ==========
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        // Movie 1: Released, has active showtime today -> SHOULD BE INCLUDED
         var movie1 = new Movie
         {
             Title = "Now Showing Movie",
-            ReleaseDate = today.AddDays(-5),
+            ReleaseDate = DateTime.UtcNow.AddDays(-5),
             IsActive = true,
-            Showtimes = new List<Showtime>
-            {
-                new Showtime { RoomNumber = "R1", StartTime = today.AddHours(20), EndTime = today.AddHours(22), BasePrice = 100000, IsActive = true }
-            }
+            Status = MovieStatus.NowShowing
         };
 
-        // Movie 2: Released, NO showtimes -> EXCLUDED
         var movie2 = new Movie
-        {
-            Title = "No Showtime Movie",
-            ReleaseDate = today.AddDays(-5),
-            IsActive = true,
-            Showtimes = new List<Showtime>()
-        };
-
-        // Movie 3: Released, has INACTIVE showtime -> EXCLUDED
-        var movie3 = new Movie
-        {
-            Title = "Inactive Showtime Movie",
-            ReleaseDate = today.AddDays(-5),
-            IsActive = true,
-            Showtimes = new List<Showtime>
-            {
-                new Showtime { RoomNumber = "R1", StartTime = today.AddHours(20), EndTime = today.AddHours(22), BasePrice = 100000, IsActive = false }
-            }
-        };
-
-        // Movie 4: Coming soon -> EXCLUDED
-        var movie4 = new Movie
         {
             Title = "Coming Soon Movie",
-            ReleaseDate = today.AddDays(5),
+            ReleaseDate = DateTime.UtcNow.AddDays(5),
             IsActive = true,
-            Showtimes = new List<Showtime>()
-        };
-
-        _dbContext.Movies.AddRange(movie1, movie2, movie3, movie4);
-        await _dbContext.SaveChangesAsync();
-
-        // ========== ACT ==========
-        var result = await _movieService.GetAllMoviesAsync(onlyActive: true, status: "now-showing");
-
-        // ========== ASSERT ==========
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result[0].Title.Should().Be("Now Showing Movie");
-    }
-
-    [Test]
-    public async Task GetAllMoviesAsync_StatusComingSoon_ReturnsValidMovies()
-    {
-        // ========== ARRANGE ==========
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone).Date;
-
-        var movie1 = new Movie
-        {
-            Title = "Now Showing Movie",
-            ReleaseDate = today.AddDays(-5),
-            IsActive = true
-        };
-
-        var movie2 = new Movie
-        {
-            Title = "Coming Soon Movie 1",
-            ReleaseDate = today.AddDays(5),
-            IsActive = true
+            Status = MovieStatus.ComingSoon
         };
 
         var movie3 = new Movie
         {
-            Title = "Coming Soon Movie 2",
-            ReleaseDate = today.AddDays(10),
-            IsActive = true
+            Title = "Stopped Movie",
+            ReleaseDate = DateTime.UtcNow.AddDays(-30),
+            IsActive = true,
+            Status = MovieStatus.Stopped
         };
 
         _dbContext.Movies.AddRange(movie1, movie2, movie3);
         await _dbContext.SaveChangesAsync();
 
         // ========== ACT ==========
-        var result = await _movieService.GetAllMoviesAsync(onlyActive: true, status: "coming-soon");
+        var result = await _movieService.GetAllMoviesAsync(onlyActive: true, status: "NowShowing");
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        result[0].Title.Should().Be("Now Showing Movie");
+        result[0].Status.Should().Be("NowShowing");
+    }
+
+    [Test]
+    public async Task GetAllMoviesAsync_StatusComingSoon_ReturnsValidMovies()
+    {
+        // ========== ARRANGE ==========
+        var movie1 = new Movie
+        {
+            Title = "Now Showing Movie",
+            ReleaseDate = DateTime.UtcNow.AddDays(-5),
+            IsActive = true,
+            Status = MovieStatus.NowShowing
+        };
+
+        var movie2 = new Movie
+        {
+            Title = "Coming Soon Movie 1",
+            ReleaseDate = DateTime.UtcNow.AddDays(5),
+            IsActive = true,
+            Status = MovieStatus.ComingSoon
+        };
+
+        var movie3 = new Movie
+        {
+            Title = "Coming Soon Movie 2",
+            ReleaseDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            Status = MovieStatus.ComingSoon
+        };
+
+        _dbContext.Movies.AddRange(movie1, movie2, movie3);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _movieService.GetAllMoviesAsync(onlyActive: true, status: "ComingSoon");
 
         // ========== ASSERT ==========
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Select(m => m.Title).Should().Contain(new[] { "Coming Soon Movie 1", "Coming Soon Movie 2" });
+        result.Should().AllSatisfy(m => m.Status.Should().Be("ComingSoon"));
     }
 
     #endregion

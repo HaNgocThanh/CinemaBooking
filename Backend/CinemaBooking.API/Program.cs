@@ -66,6 +66,9 @@ builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IShowtimeService, CinemaBooking.Infrastructure.Services.ShowtimeService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<ISeatTemplateService, SeatTemplateService>();
 
 // 🚀 Register background jobs
 builder.Services.AddHostedService<SeatCleanupWorker>();

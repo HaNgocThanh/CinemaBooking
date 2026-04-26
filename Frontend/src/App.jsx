@@ -6,6 +6,8 @@ import { MainLayout, AdminLayout } from './layouts';
 import { HomePage } from './pages';
 import LoginPage from './pages/auth/LoginPage';
 import AdminMovieManagementPage from './pages/admin/MovieManagementPage';
+import AdminShowtimeManagementPage from './pages/admin/ShowtimeManagementPage';
+import AdminRoomManagementPage from './pages/admin/RoomManagementPage';
 import './App.css';
 
 /**
@@ -62,7 +64,8 @@ function App() {
                 <AdminLayout>
                   <Routes>
                     <Route path="/movies" element={<AdminMovieManagementPage />} />
-                    {/* <Route path="/showtimes" element={<AdminShowtimeManagementPage />} /> */}
+                    <Route path="/showtimes" element={<AdminShowtimeManagementPage />} />
+                    <Route path="/rooms" element={<AdminRoomManagementPage />} />
                     {/* <Route path="/bookings" element={<AdminBookingManagementPage />} /> */}
                     {/* <Route path="/promotions" element={<AdminPromotionManagementPage />} /> */}
                     {/* <Route path="/users" element={<AdminUserManagementPage />} /> */}

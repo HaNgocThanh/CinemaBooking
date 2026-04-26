@@ -49,4 +49,7 @@ public class UpdateMovieDto
 
     /// <summary>Trạng thái hoạt động.</summary>
     public bool? IsActive { get; set; }
+
+    /// <summary>Trạng thái phim (ComingSoon, NowShowing, Stopped).</summary>
+    public string? Status { get; set; }
 }

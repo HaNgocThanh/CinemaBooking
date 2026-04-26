@@ -11,6 +11,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +26,11 @@ const menuItems = [
     key: '/admin/movies',
     icon: <VideoCameraOutlined />,
     label: <Link to="/admin/movies">Quản Lý Phim</Link>,
+  },
+  {
+    key: '/admin/rooms',
+    icon: <AppstoreOutlined />,
+    label: <Link to="/admin/rooms">Quản Lý Phòng Chiếu</Link>,
   },
   {
     key: '/admin/showtimes',

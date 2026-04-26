@@ -25,6 +25,9 @@ public class ShowtimeSeat
     /// <summary>Trạng thái hiện tại của ghế (Available, Locked, Booked, Unavailable).</summary>
     public required SeatStatus Status { get; set; } = SeatStatus.Available;
 
+    /// <summary>Loại ghế trong suất chiếu này (Regular hoặc VIP), kế thừa từ SeatTemplate.</summary>
+    public SeatType Type { get; set; }
+
     /// <summary>Thời gian ghế được khóa (dùng cho pessimistic locking, 5 phút timeout).</summary>
     public DateTime? LockedAt { get; set; }
 

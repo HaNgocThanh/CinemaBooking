@@ -89,14 +89,18 @@ export function MovieList({
     },
     {
       title: 'Trạng Thái',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      width: 100,
-      render: (isActive) => (
-        <Tag color={isActive ? 'green' : 'red'}>
-          {isActive ? 'Đang Chiếu' : 'Dừng'}
-        </Tag>
-      ),
+      dataIndex: 'status',
+      key: 'status',
+      width: 120,
+      render: (status) => {
+        const map = {
+          ComingSoon: { color: 'blue', label: 'Sắp Chiếu' },
+          NowShowing: { color: 'green', label: 'Đang Chiếu' },
+          Stopped: { color: 'red', label: 'Ngưng Chiếu' },
+        };
+        const config = map[status] || { color: 'default', label: status };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
     },
     {
       title: 'Xếp Hạng',

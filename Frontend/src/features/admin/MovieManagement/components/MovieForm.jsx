@@ -227,21 +227,31 @@ export function MovieForm({
             </Form.Item>
 
             {/* Status */}
+            <Form.Item
+              name="status"
+              label="Trạng Thái Phim"
+              initialValue="ComingSoon"
+            >
+              <Select
+                placeholder="Chọn trạng thái"
+                options={[
+                  { value: 'ComingSoon', label: 'Sắp Chiếu' },
+                  { value: 'NowShowing', label: 'Đang Chiếu' },
+                  { value: 'Stopped', label: 'Ngưng Chiếu' },
+                ]}
+              />
+            </Form.Item>
+
+            {/* Active & Featured */}
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item name="isActive" label="Trạng Thái" valuePropName="checked">
-                  <Switch
-                    checkedChildren="Đang Chiếu"
-                    unCheckedChildren="Dừng"
-                  />
+                <Form.Item name="isActive" label="Kích Hoạt" valuePropName="checked">
+                  <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item name="isFeatured" label="Nổi Bật" valuePropName="checked">
-                  <Switch
-                    checkedChildren="Có"
-                    unCheckedChildren="Không"
-                  />
+                  <Switch checkedChildren="Có" unCheckedChildren="Không" />
                 </Form.Item>
               </Col>
             </Row>

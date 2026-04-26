@@ -103,7 +103,7 @@ public class BookingServiceTests
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "A1",
+            RoomId = 1,
             StartTime = DateTime.UtcNow.AddHours(2),
             EndTime = DateTime.UtcNow.AddHours(4),
             BasePrice = basePrice,
@@ -180,7 +180,7 @@ public class BookingServiceTests
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "B2",
+            RoomId = 1,
             StartTime = DateTime.UtcNow.AddHours(2),
             EndTime = DateTime.UtcNow.AddHours(4),
             BasePrice = basePrice,
@@ -267,7 +267,7 @@ public class BookingServiceTests
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "C3",
+            RoomId = 1,
             StartTime = DateTime.UtcNow.AddHours(2),
             EndTime = DateTime.UtcNow.AddHours(4),
             BasePrice = 150000m,
@@ -324,7 +324,7 @@ public class BookingServiceTests
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "D4",
+            RoomId = 1,
             StartTime = DateTime.UtcNow.AddHours(2),
             EndTime = DateTime.UtcNow.AddHours(4),
             BasePrice = basePrice,
@@ -473,7 +473,7 @@ public class BookingServiceTests
         {
             Id = showtimeId,
             MovieId = 1,
-            RoomNumber = "E5",
+            RoomId = 1,
             StartTime = DateTime.UtcNow.AddHours(2),
             EndTime = DateTime.UtcNow.AddHours(4),
             BasePrice = 100000m,

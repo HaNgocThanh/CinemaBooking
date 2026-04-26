@@ -12,7 +12,7 @@ public interface IMovieService
     /// Lấy danh sách tất cả phim đang hoạt động.
     /// </summary>
     /// <param name="onlyActive">Chỉ lấy phim đang hoạt động (IsActive = true). Mặc định: true.</param>
-    /// <param name="status">Trạng thái phim ("now-showing" hoặc "coming-soon"). Mặc định: null.</param>
+    /// <param name="status">Trạng thái phim ("NowShowing", "ComingSoon", "Stopped"). Mặc định: null (lấy tất cả).</param>
     /// <returns>Danh sách MovieResponseDto.</returns>
     Task<List<MovieResponseDto>> GetAllMoviesAsync(bool onlyActive = true, string? status = null);
 

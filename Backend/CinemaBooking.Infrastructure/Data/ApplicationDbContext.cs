@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext
     // DbSets
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Movie> Movies { get; set; } = null!;
+    public DbSet<Room> Rooms { get; set; } = null!;
+    public DbSet<SeatTemplate> SeatTemplates { get; set; } = null!;
     public DbSet<Showtime> Showtimes { get; set; } = null!;
     public DbSet<ShowtimeSeat> ShowtimeSeats { get; set; } = null!;
     public DbSet<Booking> Bookings { get; set; } = null!;
@@ -40,11 +42,14 @@ public class ApplicationDbContext : DbContext
         }
 
         ConfigureMovieEntity(modelBuilder);
+        ConfigureRoomEntity(modelBuilder);
+        ConfigureSeatTemplateEntity(modelBuilder);
         ConfigureShowtimeEntity(modelBuilder);
         ConfigureShowtimeSeatEntity(modelBuilder);
         ConfigureBookingEntity(modelBuilder);
         ConfigureTicketEntity(modelBuilder);
         ConfigureUserEntity(modelBuilder);
+        SeedData(modelBuilder);
     }
 
     /// <summary>
@@ -120,6 +125,13 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("IsActive")
                 .HasDefaultValue(true);
 
+            entity.Property(e => e.Status)
+                .HasColumnName("Status")
+                .HasConversion(
+                    v => (int)v,
+                    v => (MovieStatus)v)
+                .HasDefaultValue(MovieStatus.ComingSoon);
+
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .HasColumnType("DATE");
@@ -133,6 +145,103 @@ public class ApplicationDbContext : DbContext
                 .WithOne(s => s.Movie)
                 .HasForeignKey(s => s.MovieId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    /// <summary>
+    /// Cấu hình Room entity với Fluent API.
+    /// </summary>
+    private static void ConfigureRoomEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Room>(entity =>
+        {
+            // Table configuration
+            entity.ToTable("Rooms");
+            entity.HasKey(e => e.Id);
+
+            // Column configuration
+            entity.Property(e => e.Id)
+                .HasColumnName("Id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .HasColumnName("Name")
+                .HasColumnType("VARCHAR2(50)")
+                .IsRequired();
+
+            entity.Property(e => e.Capacity)
+                .HasColumnName("Capacity")
+                .IsRequired();
+
+            entity.Property(e => e.Type)
+                .HasColumnName("Type")
+                .HasColumnType("VARCHAR2(50)")
+                .IsRequired();
+
+            // Relationships
+            entity.HasMany(e => e.SeatTemplates)
+                .WithOne(s => s.Room)
+                .HasForeignKey(s => s.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Showtimes)
+                .WithOne(s => s.Room)
+                .HasForeignKey(s => s.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    /// <summary>
+    /// Cấu hình SeatTemplate entity với Fluent API.
+    /// </summary>
+    private static void ConfigureSeatTemplateEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SeatTemplate>(entity =>
+        {
+            entity.ToTable("SeatTemplates");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("Id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.RoomId)
+                .HasColumnName("RoomId")
+                .IsRequired();
+
+            entity.Property(e => e.Row)
+                .HasColumnName("Row")
+                .HasMaxLength(5)
+                .IsRequired();
+
+            entity.Property(e => e.Number)
+                .HasColumnName("Number")
+                .IsRequired();
+
+            entity.Property(e => e.Type)
+                .HasColumnName("Type")
+                .HasConversion(
+                    v => (int)v,
+                    v => (SeatType)v)
+                .IsRequired();
+
+            entity.Property(e => e.DisplayOrder)
+                .HasColumnName("DisplayOrder")
+                .IsRequired();
+
+            // Relationships
+            entity.HasOne(e => e.Room)
+                .WithMany(r => r.SeatTemplates)
+                .HasForeignKey(e => e.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            entity.HasIndex(e => e.RoomId)
+                .HasDatabaseName("IX_SeatTemplate_RoomId");
+
+            entity.HasIndex(e => new { e.RoomId, e.Row, e.Number })
+                .IsUnique()
+                .HasDatabaseName("UX_SeatTemplate_RoomId_Row_Number");
         });
     }
 
@@ -156,9 +265,8 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("MovieId")
                 .IsRequired();
 
-            entity.Property(e => e.RoomNumber)
-                .HasColumnName("RoomNumber")
-                .HasMaxLength(10)
+            entity.Property(e => e.RoomId)
+                .HasColumnName("RoomId")
                 .IsRequired();
 
             entity.Property(e => e.StartTime)
@@ -201,6 +309,11 @@ public class ApplicationDbContext : DbContext
                 .WithMany(m => m.Showtimes)
                 .HasForeignKey(e => e.MovieId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Room)
+                .WithMany(r => r.Showtimes)
+                .HasForeignKey(e => e.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Relationships
             entity.HasMany(e => e.Seats)
@@ -263,6 +376,13 @@ public class ApplicationDbContext : DbContext
                     v => (int)v,
                     v => (SeatStatus)v)
                 .HasDefaultValue(SeatStatus.Available);
+
+            entity.Property(e => e.Type)
+                .HasColumnName("Type")
+                .HasConversion(
+                    v => (int)v,
+                    v => (SeatType)v)
+                .IsRequired();
 
             // Pessimistic locking fields (CRITICAL)
             entity.Property(e => e.LockedAt)
@@ -635,5 +755,67 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CreatedAt)
                 .HasDatabaseName("IX_User_CreatedAt");
         });
+    }
+
+    /// <summary>
+    /// Seed data for Room and SeatTemplate entities.
+    /// Creates 2 rooms with 20 seat templates each (rows A-D, 5 seats per row).
+    /// </summary>
+    private static void SeedData(ModelBuilder modelBuilder)
+    {
+        // Seed Rooms
+        modelBuilder.Entity<Room>().HasData(
+            new Room { Id = 1, Name = "Phòng 01", Capacity = 20, Type = "2D" },
+            new Room { Id = 2, Name = "Phòng 02", Capacity = 20, Type = "3D" }
+        );
+
+        // Seed SeatTemplates for Room 1 (Phòng 01)
+        var room1Seats = new List<SeatTemplate>();
+        var rows = new[] { "A", "B", "C", "D" };
+        var seatTypePerRow = new Dictionary<string, SeatType>
+        {
+            { "A", SeatType.Regular },
+            { "B", SeatType.Regular },
+            { "C", SeatType.VIP },
+            { "D", SeatType.VIP }
+        };
+
+        int seatId = 1;
+        for (int r = 0; r < rows.Length; r++)
+        {
+            for (int n = 1; n <= 5; n++)
+            {
+                room1Seats.Add(new SeatTemplate
+                {
+                    Id = seatId,
+                    RoomId = 1,
+                    Row = rows[r],
+                    Number = n,
+                    Type = seatTypePerRow[rows[r]],
+                    DisplayOrder = seatId
+                });
+                seatId++;
+            }
+        }
+
+        // Seed SeatTemplates for Room 2 (Phòng 02)
+        for (int r = 0; r < rows.Length; r++)
+        {
+            for (int n = 1; n <= 5; n++)
+            {
+                room1Seats.Add(new SeatTemplate
+                {
+                    Id = seatId,
+                    RoomId = 2,
+                    Row = rows[r],
+                    Number = n,
+                    Type = seatTypePerRow[rows[r]],
+                    DisplayOrder = seatId - 20
+                });
+                seatId++;
+            }
+        }
+
+        modelBuilder.Entity<SeatTemplate>().HasData(room1Seats);
     }
 }
