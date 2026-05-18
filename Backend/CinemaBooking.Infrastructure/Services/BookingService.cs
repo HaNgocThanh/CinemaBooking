@@ -8,6 +8,7 @@ using CinemaBooking.Domain.Exceptions;
 using CinemaBooking.Domain.Interfaces;
 using CinemaBooking.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace CinemaBooking.Infrastructure.Services;
 
@@ -17,7 +18,11 @@ namespace CinemaBooking.Infrastructure.Services;
 /// - Pessimistic locking ghế
 /// - Validation promo code
 /// - Tính toán giá tiền
-/// - Tạo Booking và Ticket entities
+/// - Tạo Booking entity (trạng thái Pending)
+/// - Chuyển ghế sang trạng thái Reserved
+///
+/// Vé (Ticket) được tạo KHI VÀ CHỈ KHI Admin duyệt đơn (ApproveBookingAsync).
+/// Việc hoãn tạo vé tránh ORA-00001 khi đơn bị hủy và ghế nhả ra cho khách khác.
 /// </summary>
 public class BookingService : IBookingService
 {
@@ -70,35 +75,34 @@ public class BookingService : IBookingService
                 }
 
                 // ============================================
-                // BƯỚC 4: Gọi ISeatRepository.LockSeatsAsync
-                // (Pessimistic locking - FOR UPDATE NOWAIT)
+                // BƯỚC 4: Validate VIP single seat gap rule
                 // ============================================
-                var userId = request.SessionId ?? request.CustomerId?.ToString() ?? Guid.NewGuid().ToString();
-                List<ShowtimeSeat> lockedSeats;
-                
-                try
-                {
-                    lockedSeats = await _seatRepository.LockSeatsAsync(
-                        request.SeatIds,
-                        request.ShowtimeId,
-                        userId
-                    );
-                }
-                catch (SeatAlreadyLockedException)
-                {
-                    // Re-throw domain exception
-                    await transaction.RollbackAsync();
-                    throw;
-                }
+                var allSeats = await _context.ShowtimeSeats
+                    .Where(s => s.ShowtimeId == request.ShowtimeId)
+                    .AsNoTracking()
+                    .ToListAsync();
+                ValidateVipSingleGapRule(allSeats, request.SeatIds);
 
                 // ============================================
-                // BƯỚC 5: Query giá các ghế + tính SubTotal
+                // BƯỚC 5: Gọi ISeatRepository.LockSeatsAsync
+                // (Pessimistic locking - FOR UPDATE NOWAIT)
+                // Transaction do BookingService quản lý
+                // ============================================
+                var userId = request.SessionId ?? request.CustomerId?.ToString() ?? Guid.NewGuid().ToString();
+                var lockedSeats = await _seatRepository.LockSeatsAsync(
+                    request.SeatIds,
+                    request.ShowtimeId,
+                    userId
+                );
+
+                // ============================================
+                // BƯỚC 6: Query giá các ghế + tính SubTotal
                 // ============================================
                 // Giá vé = Showtime.BasePrice (mặc định)
                 var subtotal = lockedSeats.Count * showtime.BasePrice;
 
                 // ============================================
-                // BƯỚC 6: Tính tiền Combos (nếu có)
+                // BƯỚC 7: Tính tiền Combos (nếu có)
                 // ============================================
                 var comboAmount = 0m;
                 if (request.CombosWithQuantity != null && request.CombosWithQuantity.Count > 0)
@@ -112,7 +116,7 @@ public class BookingService : IBookingService
                 var totalBeforeDiscount = subtotal + comboAmount;
 
                 // ============================================
-                // BƯỚC 7: Kiểm tra PromoCode (nếu có)
+                // BƯỚC 8: Kiểm tra PromoCode (nếu có)
                 // ============================================
                 decimal discountAmount = 0;
                 string? appliedPromoCode = null;
@@ -142,7 +146,7 @@ public class BookingService : IBookingService
                 var totalAmount = totalBeforeDiscount - discountAmount;
 
                 // ============================================
-                // BƯỚC 8: Tạo entity Booking
+                // BƯỚC 9: Tạo entity Booking
                 // ============================================
                 var bookingCode = CodeGenerator.GenerateBookingCode();
                 var expiresAt = DateTime.UtcNow.AddMinutes(BOOKING_EXPIRATION_MINUTES);
@@ -152,7 +156,7 @@ public class BookingService : IBookingService
                     BookingCode = bookingCode,
                     ShowtimeId = request.ShowtimeId,
                     CustomerId = request.CustomerId,
-                    Status = BookingStatus.PendingPayment,
+                    Status = BookingStatus.Pending,
                     TotalTickets = lockedSeats.Count,
                     SubTotal = subtotal,
                     DiscountAmount = discountAmount,
@@ -160,68 +164,36 @@ public class BookingService : IBookingService
                     PromotionCode = appliedPromoCode,
                     SessionId = userId,
                     BookedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
                     ExpiresAt = expiresAt,
                     Notes = request.Notes
                 };
 
                 // ============================================
-                // BƯỚC 9: Lưu Booking trước (để lấy ID)
+                // BƯỚC 10: Lưu Booking
                 // ============================================
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
                 // ============================================
-                // BƯỚC 10: Tạo các entity Ticket cho từng ghế
+                // BƯỚC 11: Gán BookingId vào ShowtimeSeats để Admin duyệt biết ghế nào
                 // ============================================
-                var tickets = new List<Ticket>();
-
-                foreach (var seat in lockedSeats)
-                {
-                    var ticketCode = CodeGenerator.GenerateTicketCode();
-                    var ticket = new Ticket
-                    {
-                        TicketCode = ticketCode,
-                        BookingId = booking.Id,
-                        ShowtimeSeatId = seat.Id,
-                        Price = showtime.BasePrice,
-                        SeatType = "STANDARD",
-                        IsActive = true,
-                        IssuedAt = DateTime.UtcNow,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    tickets.Add(ticket);
-                }
+                var lockedSeatIds = lockedSeats.Select(s => s.Id).ToList();
+                await _context.ShowtimeSeats
+                    .Where(s => lockedSeatIds.Contains(s.Id))
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.BookingId, booking.Id)
+                        .SetProperty(x => x.BookedByUserId, booking.CustomerId));
 
                 // ============================================
-                // BƯỚC 11: Lưu Tickets vào DbContext
-                // ============================================
-                _context.Tickets.AddRange(tickets);
-                await _context.SaveChangesAsync();
-
-                // ============================================
-                // BƯỚC 12: Cập nhật ShowtimeSeat để map với Ticket
-                // ============================================
-                foreach (var seat in lockedSeats)
-                {
-                    var ticket = tickets.FirstOrDefault(t => t.ShowtimeSeatId == seat.Id);
-                    if (ticket != null)
-                    {
-                        seat.TicketId = ticket.Id;
-                        seat.Status = SeatStatus.Booked;
-                        seat.BookedByUserId = request.CustomerId;
-                    }
-                }
-                _context.ShowtimeSeats.UpdateRange(lockedSeats);
-                await _context.SaveChangesAsync();
-
-                // ============================================
-                // BƯỚC 13: Commit Transaction
+                // BƯỚC 12: Commit Transaction
                 // ============================================
                 await transaction.CommitAsync();
 
                 // ============================================
-                // BƯỚC 14: Trả về response DTO
+                // BƯỚC 12: Trả về response DTO
                 // ============================================
+                // TicketIds sẽ được tạo khi Admin duyệt đơn
                 return new BookingResponseDto
                 {
                     BookingId = booking.Id,
@@ -233,8 +205,9 @@ public class BookingService : IBookingService
                     TotalAmount = booking.TotalAmount,
                     AppliedPromoCode = booking.PromotionCode,
                     ExpiresAt = booking.ExpiresAt,
-                    BookedAt = booking.BookedAt,
-                    TicketIds = tickets.Select(t => t.Id).ToList()
+                    CreatedAt = booking.CreatedAt,
+                    RemainingSeconds = Math.Max(0, 300 - (int)(DateTime.UtcNow - booking.CreatedAt).TotalSeconds),
+                    TicketIds = new List<int>()
                 };
             }
             catch (InvalidShowtimeException)
@@ -258,6 +231,11 @@ public class BookingService : IBookingService
                 throw;
             }
             catch (SeatAlreadyLockedException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            catch (VipSingleGapException)
             {
                 await transaction.RollbackAsync();
                 throw;
@@ -294,6 +272,58 @@ public class BookingService : IBookingService
             {
                 if (combo.Key <= 0 || combo.Value <= 0)
                     throw new InvalidSeatsException("INVALID_COMBO", "ID combo và số lượng phải > 0.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates the VIP single seat gap rule.
+    /// A VIP seat that is currently Available cannot be left empty while flanked
+    /// by TAKEN seats (Booked or Locked) on both sides.
+    /// Boundary seats (first and last in a row) are always exempt.
+    ///
+    /// @param allSeats - full seat list for the showtime from the database
+    /// @param newSeatIds - IDs of the seats being booked in this request
+    /// @throws VipSingleGapException if the rule is violated
+    /// </summary>
+    private void ValidateVipSingleGapRule(List<ShowtimeSeat> allSeats, List<int> newSeatIds)
+    {
+        var newSeatSet = new HashSet<int>(newSeatIds);
+
+        // Group seats by row and sort by column
+        var byRow = allSeats
+            .GroupBy(s => s.RowLetter)
+            .ToDictionary(g => g.Key, g => g.OrderBy(s => s.ColumnNumber).ToList());
+
+        foreach (var kvp in byRow)
+        {
+            var row = kvp.Value;
+
+            // Skip boundary seats: index 0 (left edge) and last index (right edge)
+            for (int i = 1; i < row.Count - 1; i++)
+            {
+                var seat = row[i];
+
+                // Only apply to VIP seats that are currently empty (Available) in the database
+                if (seat.Type != SeatType.VIP || seat.Status != SeatStatus.Available)
+                    continue;
+
+                var prev = row[i - 1];
+                var next = row[i + 1];
+
+                var prevTaken = prev.Status == SeatStatus.Booked
+                    || prev.Status == SeatStatus.Locked
+                    || newSeatSet.Contains(prev.Id);
+
+                var nextTaken = next.Status == SeatStatus.Booked
+                    || next.Status == SeatStatus.Locked
+                    || newSeatSet.Contains(next.Id);
+
+                // Violation: flanked by TAKEN seats on both sides
+                if (prevTaken && nextTaken)
+                {
+                    throw new VipSingleGapException();
+                }
             }
         }
     }

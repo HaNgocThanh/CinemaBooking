@@ -1,23 +1,21 @@
 import { Table, Tag, Space, Button, Tooltip } from 'antd';
 import { EditOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+
+dayjs.locale('vi');
 
 const { Column } = Table;
 
 /**
  * ShowtimeTable
- * Presentational component: displays showtime list with Ant Design Table
+ * Presentational component: displays showtime list with Ant Design Table.
+ * Uses dayjs for consistent timezone display (UTC+7 / Asia/Ho_Chi_Minh).
  */
 export function ShowtimeTable({ showtimes, loading, onEdit }) {
   const formatDateTime = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return dayjs(dateString).format('DD/MM/YYYY HH:mm');
   };
 
   const formatCurrency = (amount) => {

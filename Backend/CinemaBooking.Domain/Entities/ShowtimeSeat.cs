@@ -22,6 +22,12 @@ public class ShowtimeSeat
     /// <summary>Số cột ghế (vd: 1, 2, 3).</summary>
     public int ColumnNumber { get; set; }
 
+    /// <summary>Tọa độ hàng trong ma trận sơ đồ ghế (từ SeatTemplate).</summary>
+    public int GridRow { get; set; }
+
+    /// <summary>Tọa độ cột trong ma trận sơ đồ ghế (từ SeatTemplate).</summary>
+    public int GridColumn { get; set; }
+
     /// <summary>Trạng thái hiện tại của ghế (Available, Locked, Booked, Unavailable).</summary>
     public required SeatStatus Status { get; set; } = SeatStatus.Available;
 
@@ -39,6 +45,13 @@ public class ShowtimeSeat
 
     /// <summary>Định danh người dùng đã đặt ghế này (nếu có).</summary>
     public int? BookedByUserId { get; set; }
+
+    /// <summary>
+    /// Định danh đơn đặt vé liên quan đến ghế này (nếu ghế đã được đặt/chờ thanh toán).
+    /// Được gán khi tạo Booking (trạng thái Pending) và xóa khi đơn hủy/timeout.
+    /// Dùng để truy vấn ghế khi Admin duyệt mà không cần Ticket.
+    /// </summary>
+    public int? BookingId { get; set; }
 
     /// <summary>Định danh vé liên quan đến ghế này (nếu ghế đã được đặt).</summary>
     public int? TicketId { get; set; }

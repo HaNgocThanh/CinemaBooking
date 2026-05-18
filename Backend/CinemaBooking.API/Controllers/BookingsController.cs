@@ -17,11 +17,16 @@ namespace CinemaBooking.API.Controllers;
 public class BookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;
+    private readonly IBookingPaymentService _bookingPaymentService;
     private readonly ILogger<BookingsController> _logger;
 
-    public BookingsController(IBookingService bookingService, ILogger<BookingsController> logger)
+    public BookingsController(
+        IBookingService bookingService,
+        IBookingPaymentService bookingPaymentService,
+        ILogger<BookingsController> logger)
     {
         _bookingService = bookingService ?? throw new ArgumentNullException(nameof(bookingService));
+        _bookingPaymentService = bookingPaymentService ?? throw new ArgumentNullException(nameof(bookingPaymentService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -150,4 +155,174 @@ public class BookingsController : ControllerBase
     {
         return User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst("Username")?.Value ?? "unknown";
     }
+
+    /// <summary>
+    /// Khách bấm "Tôi đã chuyển khoản" - chuyển trạng thái sang AwaitingConfirmation.
+    /// Đơn hàng sẽ bị đóng băng, không bị hủy ngầm bởi background worker.
+    /// </summary>
+    /// <param name="id">Booking ID.</param>
+    /// <returns>Thông tin trạng thái booking sau khi submit.</returns>
+    [HttpPut("{id}/submit")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingStatusDto>>> SubmitPayment(int id)
+    {
+        _logger.LogInformation("SubmitPayment called for BookingId: {BookingId}", id);
+
+        var result = await _bookingPaymentService.SubmitPaymentAsync(id);
+
+        _logger.LogInformation(
+            "Payment submitted for BookingId: {BookingId}, Status: {Status}",
+            id, result.Status);
+
+        return Ok(new ApiSuccessResponse<BookingStatusDto>(
+            result,
+            "Đã gửi yêu cầu xác nhận thanh toán. Vui lòng chờ Admin duyệt.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
+    /// Lấy trạng thái hiện tại của booking (dùng cho polling ở trang thanh toán).
+    /// </summary>
+    /// <param name="id">Booking ID.</param>
+    /// <returns>Thông tin trạng thái booking.</returns>
+    [HttpGet("{id}/status")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingStatusDto>>> GetBookingStatus(int id)
+    {
+        var result = await _bookingPaymentService.GetBookingStatusAsync(id);
+        return Ok(new ApiSuccessResponse<BookingStatusDto>(result, string.Empty, HttpContext.TraceIdentifier));
+    }
+}
+
+/// <summary>
+/// Controller quản lý các endpoints admin liên quan đến booking.
+/// </summary>
+[ApiController]
+[Route("api/admin/bookings")]
+[Authorize(Roles = "Admin")]
+public class AdminBookingsController : ControllerBase
+{
+    private readonly IBookingPaymentService _bookingPaymentService;
+    private readonly ILogger<AdminBookingsController> _logger;
+
+    public AdminBookingsController(
+        IBookingPaymentService bookingPaymentService,
+        ILogger<AdminBookingsController> logger)
+    {
+        _bookingPaymentService = bookingPaymentService ?? throw new ArgumentNullException(nameof(bookingPaymentService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>
+    /// Lấy danh sách tất cả booking cho trang admin (phân trang, lọc theo trạng thái).
+    /// </summary>
+    /// <param name="status">Lọc theo trạng thái (0=Pending, 1=AwaitingConfirmation, 2=Success, 3=Cancelled, 4=Expired).</param>
+    /// <param name="page">Trang hiện tại.</param>
+    /// <param name="pageSize">Kích thước trang.</param>
+    /// <returns>Danh sách booking kèm phân trang.</returns>
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingAdminListDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingAdminListDto>>> GetAllBookings(
+        [FromQuery] int? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        _logger.LogInformation(
+            "GetAllBookings called. Status: {Status}, Page: {Page}, PageSize: {PageSize}",
+            status, page, pageSize);
+
+        var result = await _bookingPaymentService.GetAllBookingsAsync(status, page, pageSize);
+
+        return Ok(new ApiSuccessResponse<BookingAdminListDto>(
+            result,
+            $"Tìm thấy {result.TotalCount} đơn đặt vé.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
+    /// Admin xác nhận đã nhận tiền - chuyển trạng thái sang Success.
+    /// Đồng thời đổi các ghế liên quan sang Booked (bán vĩnh viễn).
+    /// </summary>
+    /// <param name="id">Booking ID.</param>
+    /// <returns>Thông tin booking sau khi approve.</returns>
+    [HttpPost("{id}/approve")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingStatusDto>>> ApproveBooking(int id)
+    {
+        _logger.LogInformation("ApproveBooking called for BookingId: {BookingId}", id);
+
+        var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value
+            ?? User.FindFirst("Username")?.Value
+            ?? "Admin";
+
+        _logger.LogInformation(
+            "Admin {AdminUsername} approving booking {BookingId}",
+            adminUsername, id);
+
+        var result = await _bookingPaymentService.ApproveBookingAsync(id);
+
+        _logger.LogInformation(
+            "Booking {BookingId} approved successfully by {AdminUsername}. Status: {Status}",
+            id, adminUsername, result.Status);
+
+        return Ok(new ApiSuccessResponse<BookingStatusDto>(
+            result,
+            "Xác nhận thanh toán thành công. Đơn đặt vé đã được xác nhận.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
+    /// Admin từ chối / hủy đơn - chuyển trạng thái sang Cancelled.
+    /// Đồng thời giải phóng các ghế liên quan về Available.
+    /// </summary>
+    /// <param name="id">Booking ID.</param>
+    /// <param name="reason">Lý do từ chối (tuỳ chọn).</param>
+    /// <returns>Thông tin booking sau khi reject.</returns>
+    [HttpPost("{id}/reject")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingStatusDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingStatusDto>>> RejectBooking(
+        int id,
+        [FromBody] RejectBookingRequest? request = null)
+    {
+        _logger.LogInformation("RejectBooking called for BookingId: {BookingId}, Reason: {Reason}",
+            id, request?.Reason ?? "Không có lý do");
+
+        var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value
+            ?? User.FindFirst("Username")?.Value
+            ?? "Admin";
+
+        _logger.LogInformation(
+            "Admin {AdminUsername} rejecting booking {BookingId}",
+            adminUsername, id);
+
+        var result = await _bookingPaymentService.RejectBookingAsync(id, request?.Reason);
+
+        _logger.LogInformation(
+            "Booking {BookingId} rejected by {AdminUsername}. Status: {Status}",
+            id, adminUsername, result.Status);
+
+        return Ok(new ApiSuccessResponse<BookingStatusDto>(
+            result,
+            "Đơn đặt vé đã bị từ chối. Các ghế đã được giải phóng.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+}
+
+/// <summary>
+/// Request DTO cho việc từ chối booking.
+/// </summary>
+public class RejectBookingRequest
+{
+    public string? Reason { get; set; }
 }

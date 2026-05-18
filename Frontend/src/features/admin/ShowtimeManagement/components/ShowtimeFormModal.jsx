@@ -58,16 +58,20 @@ export function ShowtimeFormModal({
   };
 
   const handleFinish = async (values) => {
+    // IMPORTANT: Use format() instead of toISOString() to preserve local timezone (UTC+7).
+    // toISOString() converts to UTC which causes timezone shift on Oracle backend.
+    const localTimeStr = values.startTime.format('YYYY-MM-DDTHH:mm:ss');
+
     const payload = isEdit
       ? {
-          startTime: values.startTime.toISOString(),
+          startTime: localTimeStr,
           basePrice: values.basePrice,
           isActive: values.isActive,
         }
       : {
           movieId: values.movieId,
           roomId: values.roomId,
-          startTime: values.startTime.toISOString(),
+          startTime: localTimeStr,
           basePrice: values.basePrice,
         };
 

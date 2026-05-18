@@ -58,12 +58,12 @@ public class SeatCleanupWorker : BackgroundService
     {
         try
         {
-            _logger.LogInformation("🔄 Starting cleanup of expired seat locks at {Time:yyyy-MM-dd HH:mm:ss}Z", DateTime.UtcNow);
+            _logger.LogInformation("🔄 Starting cleanup of expired seat locks at {Time:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
 
             using var scope = _serviceProvider.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var expiryThreshold = now;
 
             // ⚠️ CRITICAL: Dùng ExecuteSqlRawAsync để UPDATE status và clear lock fields
@@ -101,7 +101,7 @@ public class SeatCleanupWorker : BackgroundService
             _logger.LogError(ex,
                 "❌ Error during seat cleanup at {Time:yyyy-MM-dd HH:mm:ss}Z. " +
                 "Will retry in {IntervalMinutes} minute(s)",
-                DateTime.UtcNow, CleanupIntervalMinutes);
+                DateTime.Now, CleanupIntervalMinutes);
             // ⚠️ Không throw - để job tiếp tục chạy lần sau
         }
     }

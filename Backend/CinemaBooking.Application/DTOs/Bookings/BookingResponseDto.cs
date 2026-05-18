@@ -33,7 +33,10 @@ public class BookingResponseDto
     public DateTime? ExpiresAt { get; set; }
 
     /// <summary>Thời gian tạo booking (UTC).</summary>
-    public DateTime BookedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    /// <summary>Số giây còn lại để thanh toán (tính tại server, tránh lỗi timezone client).</summary>
+    public int RemainingSeconds { get; set; }
 
     /// <summary>Danh sách ID vé được tạo.</summary>
     public List<int> TicketIds { get; set; } = new();

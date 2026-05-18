@@ -23,21 +23,22 @@ public class SeatRepository : ISeatRepository
 
     /// <summary>
     /// Khóa một nhóm ghế với pessimistic locking (Oracle SELECT ... FOR UPDATE NOWAIT).
-    /// 
+    ///
+    /// IMPORTANT: Phương thức này KHÔNG tự tạo transaction.
+    /// Nó phụ thuộc vào transaction mà caller đã mở (VD: BookingService.CreateBookingAsync).
+    /// Nếu gọi mà không có transaction, sẽ ném InvalidOperationException.
+    ///
     /// Quy trình:
-    /// 1. Bắt đầu transaction
-    /// 2. Raw SQL SELECT FOR UPDATE NOWAIT trên các ghế
-    /// 3. Kiểm tra trạng thái ghế (phải là Available)
-    /// 4. Cập nhật trạng thái thành Locked
-    /// 5. Lưu changes
-    /// 
-    /// Nếu ghế đã bị khóa bởi transaction khác, Oracle sẽ ném ORA-00054,
-    /// repository sẽ bắt và ném SeatAlreadyLockedException.
+    /// 1. Raw SQL SELECT FOR UPDATE NOWAIT trên các ghế (giữ lock Oracle row)
+    /// 2. Kiểm tra trạng thái ghế (phải là Available)
+    /// 3. Cập nhật trạng thái thành Locked
+    /// 4. Lưu changes — KHÔNG commit (caller commit)
     /// </summary>
     /// <param name="seatIds">Danh sách ID ghế cần khóa.</param>
     /// <param name="showtimeId">ID của suất chiếu.</param>
     /// <param name="userId">Session ID hoặc User ID khóa ghế.</param>
     /// <returns>Danh sách ShowtimeSeat đã bị khóa.</returns>
+    /// <exception cref="InvalidOperationException">Khi không có transaction hiện hoạt.</exception>
     /// <exception cref="SeatAlreadyLockedException">Khi ghế đã bị khóa bởi user khác.</exception>
     public async Task<List<ShowtimeSeat>> LockSeatsAsync(List<int> seatIds, int showtimeId, string userId)
     {
@@ -47,88 +48,74 @@ public class SeatRepository : ISeatRepository
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException("User ID không thể trống.", nameof(userId));
 
-        using (var transaction = await _context.Database.BeginTransactionAsync())
+        // Phải có transaction đang mở — đây là Oracle row lock, không phải table lock
+        if (_context.Database.CurrentTransaction == null)
         {
-            try
-            {
-                // Bước 1: Sử dụng Raw SQL SELECT ... FOR UPDATE NOWAIT
-                // Điều này sẽ lock các ghế Available trên Oracle Database
-                // Nếu ghế đã bị lock bởi transaction khác, sẽ ném ORA-00054 ngay lập tức
-                var seatIdList = string.Join(",", seatIds);
-                var statusAvailable = (int)SeatStatus.Available;
-                
-                var sql = $"""
-                    SELECT * FROM "ShowtimeSeats"
-                    WHERE "Id" IN ({seatIdList})
-                      AND "ShowtimeId" = {showtimeId}
-                      AND "Status" = {statusAvailable}
-                    FOR UPDATE NOWAIT
-                """;
-
-                var lockedSeats = await _context.ShowtimeSeats
-                    .FromSqlRaw(sql)
-                    .ToListAsync();
-
-                // Bước 2: Kiểm tra xem số ghế lock được có trùng với yêu cầu không
-                if (lockedSeats.Count != seatIds.Count)
-                {
-                    await transaction.RollbackAsync();
-                    throw new SeatAlreadyLockedException(
-                        "SEAT_NOT_AVAILABLE",
-                        $"Một hoặc nhiều ghế không khả dụng. Chỉ có {lockedSeats.Count} trên {seatIds.Count} ghế là có sẵn."
-                    );
-                }
-
-                // Bước 3: Cập nhật trạng thái thành Locked (trong transaction đã lock)
-                var utcNow = DateTime.UtcNow;
-                foreach (var seat in lockedSeats)
-                {
-                    seat.Status = SeatStatus.Locked;
-                    seat.LockedAt = utcNow;
-                    seat.LockedBySessionId = userId;
-                    seat.UpdatedAt = utcNow;
-                }
-
-                // Bước 4: Lưu changes vào database
-                _context.ShowtimeSeats.UpdateRange(lockedSeats);
-                await _context.SaveChangesAsync();
-
-                // Bước 5: Commit transaction (lock sẽ được release)
-                await transaction.CommitAsync();
-
-                return lockedSeats;
-            }
-            catch (DbUpdateException dbEx)
-            {
-                await transaction.RollbackAsync();
-
-                // Bắt lỗi ORA-00054: Resource busy (ghế đã bị khóa bởi user khác)
-                // Điều này xảy ra khi SELECT FOR UPDATE NOWAIT không thể lock vì ghế đang bị lock
-                if (dbEx.InnerException?.Message.Contains("ORA-00054") == true ||
-                    dbEx.InnerException?.ToString().Contains("ORA-00054") == true)
-                {
-                    throw new SeatAlreadyLockedException(
-                        "SEAT_LOCKED_BY_ANOTHER_USER",
-                        "Một hoặc nhiều ghế đang bị khóa bởi người dùng khác. Vui lòng chọn ghế khác.",
-                        dbEx
-                    );
-                }
-
-                // Nếu là lỗi khác, rethrow
-                throw;
-            }
-            catch (SeatAlreadyLockedException)
-            {
-                // Re-throw custom exception
-                throw;
-            }
-            catch (Exception)
-            {
-                // Rollback transaction nếu có bất kỳ lỗi nào
-                await transaction.RollbackAsync();
-                throw;
-            }
+            throw new InvalidOperationException(
+                "LockSeatsAsync requires an active database transaction. " +
+                "Call within BeginTransactionAsync() scope.");
         }
+
+        // Sử dụng Raw SQL SELECT ... FOR UPDATE NOWAIT
+        // Lock các ghế Available trên Oracle Database
+        // Nếu ghế đã bị lock bởi transaction khác, sẽ ném ORA-00054 ngay lập tức
+        var seatIdList = string.Join(",", seatIds);
+        var statusAvailable = (int)SeatStatus.Available;
+
+        var sql = $"""
+            SELECT * FROM "ShowtimeSeats"
+            WHERE "Id" IN ({seatIdList})
+              AND "ShowtimeId" = {showtimeId}
+              AND "Status" = {statusAvailable}
+            FOR UPDATE WAIT 3
+        """;
+
+        List<ShowtimeSeat> lockedSeats;
+
+        try
+        {
+            lockedSeats = await _context.ShowtimeSeats
+                .FromSqlRaw(sql)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            // Bắt lỗi ORA-00054: Resource busy (ghế đã bị khóa bởi user khác)
+            if (ContainsOra00054(ex))
+            {
+                throw new SeatAlreadyLockedException(
+                    "SEAT_LOCKED_BY_ANOTHER_USER",
+                    "Một hoặc nhiều ghế đang bị khóa bởi người dùng khác. Vui lòng chọn ghế khác.",
+                    ex
+                );
+            }
+            throw;
+        }
+
+        // Kiểm tra xem số ghế lock được có trùng với yêu cầu không
+        if (lockedSeats.Count != seatIds.Count)
+        {
+            throw new SeatAlreadyLockedException(
+                "SEAT_NOT_AVAILABLE",
+                $"Một hoặc nhiều ghế không khả dụng. Chỉ có {lockedSeats.Count} trên {seatIds.Count} ghế là có sẵn."
+            );
+        }
+
+        // Cập nhật trạng thái thành Locked
+        var lockTime = DateTime.UtcNow;
+        foreach (var seat in lockedSeats)
+        {
+            seat.Status = SeatStatus.Locked;
+            seat.LockedAt = lockTime;
+            seat.LockedBySessionId = userId;
+            seat.UpdatedAt = lockTime;
+        }
+
+        // Lưu changes — KHÔNG commit (transaction do caller quản lý)
+        _context.ShowtimeSeats.UpdateRange(lockedSeats);
+        await _context.SaveChangesAsync();
+
+        return lockedSeats;
     }
 
     /// <summary>
@@ -190,7 +177,7 @@ public class SeatRepository : ISeatRepository
 
         foreach (var seat in seats)
         {
-            seat.UpdatedAt = DateTime.UtcNow;
+            seat.UpdatedAt = DateTime.Now;
         }
 
         _context.ShowtimeSeats.UpdateRange(seats);
@@ -203,5 +190,21 @@ public class SeatRepository : ISeatRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Kiểm tra exception chain có chứa mã lỗi ORA-00054 hay không.
+    /// Oracle.ManagedDataAccess có thể ném OracleException trực tiếp hoặc wrapped
+    /// trong DbUpdateException/InvalidOperationException.
+    /// </summary>
+    private static bool ContainsOra00054(Exception? ex)
+    {
+        while (ex != null)
+        {
+            if (ex.Message.Contains("ORA-00054"))
+                return true;
+            ex = ex.InnerException;
+        }
+        return false;
     }
 }

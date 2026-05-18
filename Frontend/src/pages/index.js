@@ -10,3 +10,6 @@
 //
 export { default as HomePage } from './home/HomePage';
 export { default as MoviesPage } from './home/MoviesPage';
+export { default as PaymentPage } from './customer/PaymentPage';
+export { default as CheckoutPage } from './customer/CheckoutPage';
+export { default as BookingApprovalPage } from './admin/BookingApprovalPage';

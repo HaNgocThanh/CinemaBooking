@@ -1,22 +1,25 @@
 namespace CinemaBooking.Domain.Enums;
 
 /// <summary>
-/// Trạng thái của một đơn đặt vé.
+/// Trạng thái thanh toán của đơn đặt vé trong luồng QR thanh toán.
 /// </summary>
 public enum BookingStatus
 {
-    /// <summary>Chờ thanh toán (người dùng đã chọn ghế nhưng chưa thanh toán).</summary>
-    PendingPayment = 0,
+    /// <summary>Chờ thanh toán - Khách đã chọn ghế, đang trong thời gian giữ ghế 5 phút.</summary>
+    Pending = 0,
 
-    /// <summary>Đã thanh toán và xác nhận (đặt vé thành công).</summary>
-    Confirmed = 1,
+    /// <summary>Chờ xác nhận - Khách đã bấm "Tôi đã chuyển khoản", đang chờ Admin duyệt.</summary>
+    AwaitingConfirmation = 1,
 
-    /// <summary>Hủy đơn đặt vé (do người dùng hoặc tự động do timeout).</summary>
-    Cancelled = 2,
+    /// <summary>Thành công - Admin đã xác nhận thanh toán, vé được xác nhận.</summary>
+    Success = 2,
 
-    /// <summary>Hết hạn thanh toán (quá 5 phút mà người dùng không thanh toán).</summary>
-    Expired = 3,
+    /// <summary>Đã hủy - Admin từ chối hoặc đơn hàng bị hủy do quá hạn.</summary>
+    Cancelled = 3,
 
-    /// <summary>Hoàn tiền (người dùng đã hủy sau khi thanh toán).</summary>
-    Refunded = 4
+    /// <summary>Hết hạn thanh toán (quá 5 phút mà không thanh toán).</summary>
+    Expired = 4,
+
+    /// <summary>Hoàn tiền (khách đã hủy sau khi thanh toán).</summary>
+    Refunded = 5
 }

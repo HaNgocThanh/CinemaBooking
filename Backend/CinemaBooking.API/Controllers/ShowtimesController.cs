@@ -112,6 +112,25 @@ public class ShowtimesController : ControllerBase
     }
 
     /// <summary>
+    /// Lay danh sach tat ca ghe cua mot suat chieu.
+    /// </summary>
+    /// <param name="id">ID cua suat chieu.</param>
+    [HttpGet("{id:int}/seats")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<List<ShowtimeSeatDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiSuccessResponse<List<ShowtimeSeatDto>>>> GetSeatsByShowtime(int id)
+    {
+        _logger.LogInformation("Fetching seats for showtime with ID: {ShowtimeId}", id);
+
+        var seats = await _showtimeService.GetSeatsByShowtimeAsync(id);
+
+        return Ok(new ApiSuccessResponse<List<ShowtimeSeatDto>>(
+            data: seats,
+            message: $"Lay danh sach {seats.Count} ghe thanh cong.",
+            traceId: HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
     /// Cap nhat mot suat chieu theo ID.
     ///
     /// Cac truong nullable — neu khong cung cap, gia tri hien tai duoc giu nguyen.

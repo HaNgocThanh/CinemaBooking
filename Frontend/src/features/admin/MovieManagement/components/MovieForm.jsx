@@ -55,14 +55,15 @@ export function MovieForm({
   }, [initialData, form]);
 
   /**
-   * Handle form submission — convert DatePicker values to ISO strings
-   * and send to parent via onSubmit callback
+   * Handle form submission — convert DatePicker values to local datetime strings
+   * and send to parent via onSubmit callback.
+   * Uses format() instead of toISOString() to preserve local timezone (UTC+7).
    */
   const handleFinish = async (values) => {
     const payload = {
       ...values,
-      releaseDate: values.releaseDate ? values.releaseDate.toISOString() : null,
-      endDate: values.endDate ? values.endDate.toISOString() : null,
+      releaseDate: values.releaseDate ? values.releaseDate.format('YYYY-MM-DD') : null,
+      endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : null,
     };
     try {
       await onSubmit(payload);

@@ -42,9 +42,11 @@ public class SeatTemplateService : ISeatTemplateService
             SeatNumber = $"{template.Row}{template.Number}",
             RowLetter = template.Row,
             ColumnNumber = template.Number,
+            GridRow = template.GridRow,
+            GridColumn = template.GridColumn,
             Type = template.Type,
             Status = SeatStatus.Available,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         }).ToList();
     }
 }

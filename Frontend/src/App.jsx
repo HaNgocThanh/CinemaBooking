@@ -6,6 +6,8 @@ import { HomeLayout, AdminLayout } from './layouts';
 import { HomePage } from './pages';
 import LoginPage from './pages/auth/LoginPage';
 import MovieDetailsPage from './pages/customer/MovieDetailsPage';
+import SeatSelectionPage from './pages/customer/SeatSelection';
+import { PaymentPage, CheckoutPage, BookingApprovalPage } from './pages';
 import AdminMovieManagementPage from './pages/admin/MovieManagementPage';
 import AdminShowtimeManagementPage from './pages/admin/ShowtimeManagementPage';
 import AdminRoomManagementPage from './pages/admin/RoomManagementPage';
@@ -48,6 +50,9 @@ function App() {
                 <HomeLayout>
                   <Routes>
                     <Route path="/movies/:id" element={<MovieDetailsPage />} />
+                    <Route path="/book/:showtimeId" element={<SeatSelectionPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/payment" element={<PaymentPage />} />
                     {/* <Route path="/register" element={<RegisterPage />} /> */}
                     {/* <Route path="/movies" element={<MoviesPage />} /> */}
                     {/* <Route path="/bookings" element={<BookingsPage />} /> */}
@@ -68,7 +73,7 @@ function App() {
                     <Route path="/movies" element={<AdminMovieManagementPage />} />
                     <Route path="/showtimes" element={<AdminShowtimeManagementPage />} />
                     <Route path="/rooms" element={<AdminRoomManagementPage />} />
-                    {/* <Route path="/bookings" element={<AdminBookingManagementPage />} /> */}
+                    <Route path="/bookings" element={<BookingApprovalPage />} />
                     {/* <Route path="/promotions" element={<AdminPromotionManagementPage />} /> */}
                     {/* <Route path="/users" element={<AdminUserManagementPage />} /> */}
                     {/* <Route path="/settings" element={<AdminSettingsPage />} /> */}

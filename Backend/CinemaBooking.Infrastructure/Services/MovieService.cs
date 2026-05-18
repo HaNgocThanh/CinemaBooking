@@ -120,7 +120,7 @@ public class MovieService : IMovieService
             ReleaseDate = request.ReleaseDate,
             EndDate = request.EndDate,
             Status = movieStatus,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             IsActive = true,
             IsFeatured = request.IsFeatured,
         };
@@ -178,7 +178,7 @@ public class MovieService : IMovieService
         if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<MovieStatus>(request.Status, true, out var movieStatus))
             movie.Status = movieStatus;
 
-        movie.UpdatedAt = DateTime.UtcNow;
+        movie.UpdatedAt = DateTime.Now;
 
         _context.Movies.Update(movie);
         await _context.SaveChangesAsync();
@@ -215,7 +215,7 @@ public class MovieService : IMovieService
         if (movie == null)
             return null;
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         var showtimes = await _context.Showtimes
             .Where(s => s.MovieId == movieId && s.StartTime > now && s.IsActive)

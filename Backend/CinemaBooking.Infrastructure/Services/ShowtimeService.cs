@@ -110,7 +110,7 @@ public class ShowtimeService : IShowtimeService
                 TotalSeats = room.Capacity,
                 BookedSeatsCount = 0,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             await _context.Showtimes.AddAsync(showtime);
@@ -170,6 +170,37 @@ public class ShowtimeService : IShowtimeService
             IsActive = showtime.IsActive,
             CreatedAt = showtime.CreatedAt
         };
+    }
+
+    public async Task<List<ShowtimeSeatDto>> GetSeatsByShowtimeAsync(int showtimeId)
+    {
+        var showtime = await _context.Showtimes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == showtimeId);
+
+        if (showtime == null)
+            return new List<ShowtimeSeatDto>();
+
+        var seats = await _context.ShowtimeSeats
+            .Where(s => s.ShowtimeId == showtimeId)
+            .OrderBy(s => s.RowLetter)
+            .ThenBy(s => s.ColumnNumber)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return seats.Select(s => new ShowtimeSeatDto
+        {
+            Id = s.Id,
+            ShowtimeId = s.ShowtimeId,
+            SeatNumber = s.SeatNumber,
+            RowLetter = s.RowLetter,
+            ColumnNumber = s.ColumnNumber,
+            GridRow = s.GridRow,
+            GridColumn = s.GridColumn,
+            Type = s.Type.ToString(),
+            Status = s.Status.ToString(),
+            Price = showtime.BasePrice
+        }).ToList();
     }
 
     /// <summary>
@@ -291,7 +322,7 @@ public class ShowtimeService : IShowtimeService
                 showtime.IsActive = dto.IsActive.Value;
             }
 
-            showtime.UpdatedAt = DateTime.UtcNow;
+            showtime.UpdatedAt = DateTime.Now;
 
             _context.Showtimes.Update(showtime);
             await _context.SaveChangesAsync();

@@ -74,6 +74,13 @@ public class ExceptionMiddleware
                 new Dictionary<string, object> { { "reason", "seat_locked_by_another_user" } }
             ),
 
+            VipSingleGapException vsgEx => (
+                HttpStatusCode.BadRequest, // 400
+                vsgEx.Code,
+                vsgEx.UserMessage,
+                new Dictionary<string, object> { { "reason", "vip_single_gap_violation" } }
+            ),
+
             // ===== Application Layer Exceptions =====
             InvalidPromoCodeException ipcEx => (
                 HttpStatusCode.BadRequest, // 400
@@ -101,6 +108,20 @@ public class ExceptionMiddleware
                 iseaEx.Code,
                 iseaEx.UserMessage,
                 new Dictionary<string, object> { { "reason", "invalid_seats_selection" } }
+            ),
+
+            BookingNotFoundException bnfEx => (
+                HttpStatusCode.NotFound, // 404
+                bnfEx.Code,
+                bnfEx.UserMessage,
+                new Dictionary<string, object> { { "reason", "booking_not_found" } }
+            ),
+
+            BookingInvalidStateException bisEx => (
+                HttpStatusCode.BadRequest, // 400
+                bisEx.Code,
+                bisEx.UserMessage,
+                new Dictionary<string, object> { { "reason", "booking_invalid_state" } }
             ),
 
             // ===== Authentication & Authorization Exceptions =====

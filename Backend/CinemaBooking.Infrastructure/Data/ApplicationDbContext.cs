@@ -272,11 +272,17 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.StartTime)
                 .HasColumnName("StartTime")
                 .HasColumnType("DATE")
+                .HasConversion(new ValueConverter<DateTime, DateTime>(
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified)))
                 .IsRequired();
 
             entity.Property(e => e.EndTime)
                 .HasColumnName("EndTime")
                 .HasColumnType("DATE")
+                .HasConversion(new ValueConverter<DateTime, DateTime>(
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified),
+                    v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified)))
                 .IsRequired();
 
             entity.Property(e => e.BasePrice)
@@ -369,6 +375,14 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("ColumnNumber")
                 .IsRequired();
 
+            entity.Property(e => e.GridRow)
+                .HasColumnName("GridRow")
+                .IsRequired();
+
+            entity.Property(e => e.GridColumn)
+                .HasColumnName("GridColumn")
+                .IsRequired();
+
             entity.Property(e => e.Status)
                 .HasColumnName("Status")
                 .HasConversion(
@@ -396,6 +410,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.BookedByUserId)
                 .HasColumnName("BookedByUserId");
 
+            entity.Property(e => e.BookingId)
+                .HasColumnName("BookingId");
+
             entity.Property(e => e.TicketId)
                 .HasColumnName("TicketId");
 
@@ -416,6 +433,15 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Ticket)
                 .WithOne(t => t.ShowtimeSeat)
                 .HasForeignKey<ShowtimeSeat>(e => e.TicketId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Relationship to Booking (optional, nullable FK — not enforced at DB level
+            // because BookingId is assigned at create-time and cleared on cancel/timeout
+            // without any FK constraint to avoid circular dependency issues)
+            entity.HasOne<Booking>()
+                .WithMany(b => b.ShowtimeSeats)
+                .HasForeignKey(e => e.BookingId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // INDEXES (Critical for performance & locking cleanup)
@@ -471,7 +497,12 @@ public class ApplicationDbContext : DbContext
                 .HasConversion(
                     v => (int)v,
                     v => (BookingStatus)v)
-                .HasDefaultValue(BookingStatus.PendingPayment);
+                .HasDefaultValue(BookingStatus.Pending);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("CreatedAt")
+                .HasColumnType("DATE")
+                .HasDefaultValueSql("SYSDATE");
 
             entity.Property(e => e.TotalTickets)
                 .HasColumnName("TotalTickets")

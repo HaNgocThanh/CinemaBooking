@@ -41,6 +41,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NVARCHAR2(30)")
                         .HasColumnName("BookingCode");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("DATE")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("SYSDATE");
+
                     b.Property<int?>("CustomerId")
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("CustomerId");
@@ -845,6 +851,9 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("BookedByUserId");
 
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("NUMBER(10)");
+
                     b.Property<int>("ColumnNumber")
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("ColumnNumber");
@@ -852,6 +861,14 @@ namespace CinemaBooking.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("DATE")
                         .HasColumnName("CreatedAt");
+
+                    b.Property<int>("GridColumn")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("GridColumn");
+
+                    b.Property<int>("GridRow")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("GridRow");
 
                     b.Property<DateTime?>("HoldExpiryTime")
                         .HasColumnType("TIMESTAMP(7)");
@@ -900,6 +917,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnName("UpdatedAt");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
 
                     b.HasIndex("LockedAt")
                         .HasDatabaseName("IX_ShowtimeSeat_LockedAt");
@@ -1139,6 +1158,10 @@ namespace CinemaBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("CinemaBooking.Domain.Entities.ShowtimeSeat", b =>
                 {
+                    b.HasOne("CinemaBooking.Domain.Entities.Booking", null)
+                        .WithMany("ShowtimeSeats")
+                        .HasForeignKey("BookingId");
+
                     b.HasOne("CinemaBooking.Domain.Entities.Showtime", "Showtime")
                         .WithMany("Seats")
                         .HasForeignKey("ShowtimeId")
@@ -1169,6 +1192,8 @@ namespace CinemaBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("CinemaBooking.Domain.Entities.Booking", b =>
                 {
+                    b.Navigation("ShowtimeSeats");
+
                     b.Navigation("Tickets");
                 });
 

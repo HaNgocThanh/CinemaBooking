@@ -19,8 +19,8 @@ public class Booking
     /// <summary>Định danh khách hàng đặt vé (có thể null nếu đặt vé không cần đăng nhập).</summary>
     public int? CustomerId { get; set; }
 
-    /// <summary>Trạng thái hiện tại của đơn đặt vé (PendingPayment, Confirmed, Cancelled, Expired, Refunded).</summary>
-    public required BookingStatus Status { get; set; } = BookingStatus.PendingPayment;
+    /// <summary>Trạng thái hiện tại của đơn đặt vé (Pending, AwaitingConfirmation, Success, Cancelled, Expired, Refunded).</summary>
+    public required BookingStatus Status { get; set; } = BookingStatus.Pending;
 
     /// <summary>Tổng số vé/ghế được đặt trong đơn này.</summary>
     public int TotalTickets { get; set; }
@@ -45,6 +45,9 @@ public class Booking
     /// <summary>Thời gian đặt vé.</summary>
     public DateTime BookedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Thời gian tạo đơn (dùng cho logic timeout 5 phút).</summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     /// <summary>Thời gian hết hạn thanh toán (thường là 5 phút sau BookedAt, tính bằng phút).</summary>
     public DateTime? ExpiresAt { get; set; }
 
@@ -67,6 +70,7 @@ public class Booking
     public virtual Showtime? Showtime { get; set; }
     public virtual User? Customer { get; set; }
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+    public ICollection<ShowtimeSeat> ShowtimeSeats { get; set; } = new List<ShowtimeSeat>();
 
     /// <summary>
     /// Kiểm tra xem đơn đặt vé có hết hạn hay không.

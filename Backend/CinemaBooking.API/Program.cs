@@ -62,16 +62,18 @@ builder.Services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 
+// 🚀 Register background jobs
+builder.Services.AddHostedService<SeatCleanupWorker>();
+builder.Services.AddHostedService<BookingTimeoutWorker>();
+
 // Register application services
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IBookingPaymentService, BookingPaymentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IShowtimeService, CinemaBooking.Infrastructure.Services.ShowtimeService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<ISeatTemplateService, SeatTemplateService>();
-
-// 🚀 Register background jobs
-builder.Services.AddHostedService<SeatCleanupWorker>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
