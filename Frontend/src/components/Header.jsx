@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Ticket } from 'lucide-react';
 
 /**
  * Header Component - Thanh Navigation
@@ -32,6 +32,15 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+              {/* My Tickets Button */}
+              <button
+                onClick={() => navigate('/my-tickets')}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition duration-300 font-medium"
+              >
+                <Ticket size={18} />
+                Vé của tôi
+              </button>
+
               {/* User Profile */}
               <div className="flex items-center gap-2 bg-gray-700 px-4 py-2 rounded-lg">
                 <User size={18} />

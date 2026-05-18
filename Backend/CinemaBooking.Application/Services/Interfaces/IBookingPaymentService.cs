@@ -48,4 +48,21 @@ public interface IBookingPaymentService
     /// <param name="pageSize">Kích thước trang.</param>
     /// <returns>Danh sách booking kèm phân trang.</returns>
     Task<BookingAdminListDto> GetAllBookingsAsync(int? status = null, int page = 1, int pageSize = 20);
+
+    /// <summary>
+    /// Lấy chi tiết vé điện tử (E-Ticket) cho khách hàng.
+    /// Chỉ trả về vé khi booking có trạng thái Success.
+    /// </summary>
+    /// <param name="bookingId">ID của booking.</param>
+    /// <param name="customerId">ID của khách hàng (để xác thực quyền xem vé).</param>
+    /// <returns>Thông tin E-Ticket hoặc throw nếu không tìm thấy / chưa thanh toán.</returns>
+    Task<ETicketDto> GetETicketAsync(int bookingId, int? customerId = null);
+
+    /// <summary>
+    /// Lấy lịch sử đặt vé của khách hàng (JWT-authenticated).
+    /// Chỉ trả về các đơn có trạng thái Success hoặc Cancelled/Expired (không trả Pending/Awaiting).
+    /// </summary>
+    /// <param name="customerId">ID của khách hàng.</param>
+    /// <returns>Danh sách lịch sử đặt vé.</returns>
+    Task<BookingHistoryListDto> GetMyHistoryAsync(int customerId);
 }

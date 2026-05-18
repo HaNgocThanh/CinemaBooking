@@ -180,7 +180,7 @@ public class BookingFixture
         int showtimeId = 1,
         int? customerId = null,
         decimal totalAmount = 450000m,
-        BookingStatus status = BookingStatus.PendingPayment)
+        BookingStatus status = BookingStatus.Pending)
     {
         var bookingId = id ?? TestDataFactory.GenerateBookingId();
         var now = DateTime.UtcNow;
@@ -196,7 +196,7 @@ public class BookingFixture
             Status = status,
             BookedAt = now,
             ExpiresAt = now.AddMinutes(5),
-            PaidAt = status == BookingStatus.Confirmed ? now : null,
+            PaidAt = status == BookingStatus.Success ? now : null,
             Notes = "Test booking"
         };
     }
@@ -235,7 +235,7 @@ public class BookingFixture
             SubTotal = totalAmount,
             TotalAmount = totalAmount,
             DiscountAmount = 0,
-            Status = BookingStatus.Confirmed,
+            Status = BookingStatus.Success,
             BookedAt = now.AddHours(-1),
             ExpiresAt = now.AddMinutes(5),
             PaidAt = now,

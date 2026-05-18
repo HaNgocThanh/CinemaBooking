@@ -118,6 +118,8 @@ export default function PaymentPage() {
 
     if (status === 'Success') {
       setConfirmed(true);
+      // Auto-navigate to ticket page after success
+      navigate(`/booking/${bookingId}/ticket`, { replace: true });
     } else if (status === 'Cancelled' || status === 'Expired') {
       setRejected(true);
     }
@@ -431,17 +433,6 @@ export default function PaymentPage() {
         >
           Tôi đã chuyển khoản
         </Button>
-
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <Button
-            type="text"
-            className="!text-slate-400 hover:!text-white"
-            onClick={() => navigate(-1)}
-            style={{ fontSize: 13 }}
-          >
-            Hủy đặt vé
-          </Button>
-        </div>
       </Card>
     </div>
   );

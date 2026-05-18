@@ -58,6 +58,21 @@ const bookingPaymentApi = {
    */
   rejectBooking: (bookingId, reason = null) =>
     axiosClient.post(`/admin/bookings/${bookingId}/reject`, reason ? { reason } : {}),
+
+  /**
+   * Get E-Ticket details for a booking
+   * @param {number} bookingId
+   * @returns {Promise}
+   */
+  getETicket: (bookingId) =>
+    axiosClient.get(`/bookings/${bookingId}/ticket`),
+
+  /**
+   * Get booking history for current user
+   * @returns {Promise}
+   */
+  getMyHistory: () =>
+    axiosClient.get('/bookings/my-history'),
 };
 
 // ========================================
@@ -124,6 +139,30 @@ export function useRejectBooking() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
     },
+  });
+}
+
+/**
+ * Hook for fetching E-Ticket details
+ * @param {number} bookingId
+ */
+export function useETicket(bookingId) {
+  return useQuery({
+    queryKey: ['e-ticket', bookingId],
+    queryFn: () => bookingPaymentApi.getETicket(bookingId),
+    enabled: !!bookingId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook for fetching booking history of current user
+ */
+export function useMyHistory() {
+  return useQuery({
+    queryKey: ['my-bookings'],
+    queryFn: () => bookingPaymentApi.getMyHistory(),
+    staleTime: 30 * 1000,
   });
 }
 

@@ -57,13 +57,27 @@ public class BookingsController : ControllerBase
         [FromBody] BookingRequestDto request)
     {
         // ============================================
+        // BƯỚC 0: Gán CustomerId từ JWT claims (nếu chưa có)
+        // ============================================
+        if (request.CustomerId == null || request.CustomerId == 0)
+        {
+            var jwtUserId = GetCurrentUserId();
+            if (jwtUserId > 0)
+            {
+                request.CustomerId = jwtUserId;
+                _logger.LogDebug("CreateBooking: auto-assigned CustomerId={CustomerId} from JWT", jwtUserId);
+            }
+        }
+
+        // ============================================
         // BƯỚC 1: Log incoming request
         // ============================================
         _logger.LogInformation(
-            "Creating booking request. ShowtimeId: {ShowtimeId}, SeatCount: {SeatCount}, PromoCode: {PromoCode}",
+            "Creating booking request. ShowtimeId: {ShowtimeId}, SeatCount: {SeatCount}, PromoCode: {PromoCode}, CustomerId: {CustomerId}",
             request.ShowtimeId,
             request.SeatIds?.Count ?? 0,
-            request.PromoCode ?? "none"
+            request.PromoCode ?? "none",
+            request.CustomerId ?? 0
         );
 
         // ============================================
@@ -195,6 +209,61 @@ public class BookingsController : ControllerBase
     {
         var result = await _bookingPaymentService.GetBookingStatusAsync(id);
         return Ok(new ApiSuccessResponse<BookingStatusDto>(result, string.Empty, HttpContext.TraceIdentifier));
+    }
+
+    /// <summary>
+    /// Lấy lịch sử đặt vé của khách hàng đang đăng nhập.
+    /// Chỉ trả về các đơn đã hoàn tất (Success) hoặc đã hủy (Cancelled/Expired).
+    /// </summary>
+    [HttpGet("my-history")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingHistoryListDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingHistoryListDto>>> GetMyHistory()
+    {
+        var userId = GetCurrentUserId();
+        _logger.LogInformation("GetMyHistory called for UserId: {UserId} (from JWT)", userId);
+
+        var result = await _bookingPaymentService.GetMyHistoryAsync(userId);
+
+        _logger.LogInformation(
+            "MyHistory retrieved for UserId: {UserId}. Total bookings: {Count}",
+            userId, result.TotalCount);
+
+        return Ok(new ApiSuccessResponse<BookingHistoryListDto>(
+            result,
+            $"Tìm thấy {result.TotalCount} đơn đặt vé.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
+    /// Lấy chi tiết vé điện tử (E-Ticket) cho khách hàng.
+    /// Chỉ hoạt động khi booking đã được thanh toán thành công (Status = Success).
+    /// </summary>
+    /// <param name="id">Booking ID.</param>
+    /// <returns>Thông tin E-Ticket gồm phim, ghế, thời gian và QR code.</returns>
+    [HttpGet("{id}/ticket")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<ETicketDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiSuccessResponse<ETicketDto>>> GetETicket(int id)
+    {
+        var userId = GetCurrentUserId();
+
+        _logger.LogInformation(
+            "GetETicket called. BookingId: {BookingId}, UserId: {UserId}",
+            id, userId);
+
+        var result = await _bookingPaymentService.GetETicketAsync(id, userId);
+
+        _logger.LogInformation(
+            "ETicket retrieved for BookingId: {BookingId}. Tickets: {TicketCount}",
+            id, result.TotalTickets);
+
+        return Ok(new ApiSuccessResponse<ETicketDto>(
+            result,
+            "Lấy thông tin vé thành công.",
+            HttpContext.TraceIdentifier
+        ));
     }
 }
 

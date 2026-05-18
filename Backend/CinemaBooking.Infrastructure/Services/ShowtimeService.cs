@@ -27,6 +27,7 @@ public class ShowtimeService : IShowtimeService
         var showtimes = await _context.Showtimes
             .Include(s => s.Movie)
             .Include(s => s.Room)
+            .Include(s => s.Seats)
             .OrderByDescending(s => s.StartTime)
             .ToListAsync();
 
@@ -41,8 +42,8 @@ public class ShowtimeService : IShowtimeService
             EndTime = s.EndTime,
             BasePrice = s.BasePrice,
             TotalSeats = s.TotalSeats,
-            BookedSeatsCount = s.BookedSeatsCount,
-            AvailableSeats = s.TotalSeats - s.BookedSeatsCount,
+            BookedSeatsCount = s.Seats.Count(ss => ss.Status == SeatStatus.Booked),
+            AvailableSeats = s.Seats.Count(ss => ss.Status == SeatStatus.Available),
             IsActive = s.IsActive,
             CreatedAt = s.CreatedAt
         }).ToList();
@@ -148,6 +149,7 @@ public class ShowtimeService : IShowtimeService
         var showtime = await _context.Showtimes
             .Include(s => s.Movie)
             .Include(s => s.Room)
+            .Include(s => s.Seats)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -165,8 +167,8 @@ public class ShowtimeService : IShowtimeService
             EndTime = showtime.EndTime,
             BasePrice = showtime.BasePrice,
             TotalSeats = showtime.TotalSeats,
-            BookedSeatsCount = showtime.BookedSeatsCount,
-            AvailableSeats = showtime.TotalSeats - showtime.BookedSeatsCount,
+            BookedSeatsCount = showtime.Seats.Count(ss => ss.Status == SeatStatus.Booked),
+            AvailableSeats = showtime.Seats.Count(ss => ss.Status == SeatStatus.Available),
             IsActive = showtime.IsActive,
             CreatedAt = showtime.CreatedAt
         };

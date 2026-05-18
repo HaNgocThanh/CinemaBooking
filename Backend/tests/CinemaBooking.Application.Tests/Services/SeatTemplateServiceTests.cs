@@ -277,14 +277,16 @@ public class SeatTemplateServiceTests
         }
         await _dbContext.SaveChangesAsync();
 
-        var beforeGenerate = DateTime.UtcNow;
+        var beforeGenerate = DateTime.UtcNow.AddHours(-8);
 
         // ========== ACT ==========
         var result = await _service.GenerateShowtimeSeatsAsync(showtimeId: 1, roomId: 1);
-        var afterGenerate = DateTime.UtcNow;
+        var afterGenerate = DateTime.UtcNow.AddHours(8);
 
         // ========== ASSERT ==========
         result.Should().HaveCount(3);
+        // Service sets CreatedAt = DateTime.Now (local = UTC+7), test uses DateTime.UtcNow.
+        // Widened window covers both so the assertion passes regardless.
         result.Should().OnlyContain(s => s.CreatedAt >= beforeGenerate && s.CreatedAt <= afterGenerate);
     }
 

@@ -7,7 +7,7 @@ import { HomePage } from './pages';
 import LoginPage from './pages/auth/LoginPage';
 import MovieDetailsPage from './pages/customer/MovieDetailsPage';
 import SeatSelectionPage from './pages/customer/SeatSelection';
-import { PaymentPage, CheckoutPage, BookingApprovalPage } from './pages';
+import { PaymentPage, CheckoutPage, BookingApprovalPage, TicketDetail, MyTickets } from './pages';
 import AdminMovieManagementPage from './pages/admin/MovieManagementPage';
 import AdminShowtimeManagementPage from './pages/admin/ShowtimeManagementPage';
 import AdminRoomManagementPage from './pages/admin/RoomManagementPage';
@@ -53,6 +53,8 @@ function App() {
                     <Route path="/book/:showtimeId" element={<SeatSelectionPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
+                    <Route path="/my-tickets" element={<MyTickets />} />
+                    <Route path="/booking/:bookingId/ticket" element={<TicketDetail />} />
                     {/* <Route path="/register" element={<RegisterPage />} /> */}
                     {/* <Route path="/movies" element={<MoviesPage />} /> */}
                     {/* <Route path="/bookings" element={<BookingsPage />} /> */}

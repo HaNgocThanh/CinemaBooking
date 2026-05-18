@@ -13,3 +13,5 @@ export { default as MoviesPage } from './home/MoviesPage';
 export { default as PaymentPage } from './customer/PaymentPage';
 export { default as CheckoutPage } from './customer/CheckoutPage';
 export { default as BookingApprovalPage } from './admin/BookingApprovalPage';
+export { default as TicketDetail } from './customer/TicketDetail';
+export { default as MyTickets } from './customer/MyTickets';

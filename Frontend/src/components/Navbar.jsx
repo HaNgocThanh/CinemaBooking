@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { Ticket } from 'lucide-react';
 
 /**
  * Navbar Component - Premium Minimalist Design
@@ -90,6 +91,16 @@ export default function Navbar() {
                     Quản Trị
                   </motion.button>
                 )}
+                {/* My Tickets Button - visible for all authenticated users */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/my-tickets')}
+                  className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-rose-500 rounded-lg shadow-lg shadow-rose-600/20 hover:shadow-rose-600/40 transition-all duration-300"
+                >
+                  <Ticket className="w-4 h-4" />
+                  Vé của tôi
+                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -173,6 +184,18 @@ export default function Navbar() {
                 {item}
               </motion.a>
             ))}
+            {user && (
+              <motion.button
+                whileHover={{ x: 4 }}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/my-tickets');
+                }}
+                className="block w-full text-left px-4 py-3 text-rose-400 hover:text-white hover:bg-slate-900/50 rounded-lg transition-colors"
+              >
+                Vé của tôi
+              </motion.button>
+            )}
           </div>
         </motion.div>
       </div>

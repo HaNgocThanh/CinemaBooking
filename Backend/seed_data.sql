@@ -538,45 +538,45 @@ COMMIT;
 -- 4. SAMPLE BOOKINGS (Dữ liệu mẫu đơn đặt vé)
 -- =====================================================
 
--- Booking 1: Dune (Showtime 1), 3 vé, Confirmed
+-- Booking 1: Dune (Showtime 1), 3 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId", "Notes")
-VALUES (N'BK202404231001001', 1, NULL, 1, 3, 360000, 0, 360000, N'session_001', SYSDATE - 1, SYSDATE - 1 + 5/1440, SYSDATE - 1, N'STRIPE', N'txn_stripe_001', N'Khách hàng VIP');
+VALUES (N'BK202404231001001', 1, NULL, 2, 3, 360000, 0, 360000, N'session_001', SYSDATE - 1, SYSDATE - 1 + 5/1440, SYSDATE - 1, N'STRIPE', N'txn_stripe_001', N'Khách hàng VIP');
 
--- Booking 2: Dune (Showtime 2), 2 vé, Confirmed
+-- Booking 2: Dune (Showtime 2), 2 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404232001002', 2, NULL, 1, 2, 240000, 24000, 216000, N'session_002', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_001');
+VALUES (N'BK202404232001002', 2, NULL, 2, 2, 240000, 24000, 216000, N'session_002', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_001');
 
--- Booking 3: Dune (Showtime 3), 4 vé, Confirmed
+-- Booking 3: Dune (Showtime 3), 4 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404233001003', 3, NULL, 1, 4, 600000, 0, 600000, N'session_003', SYSDATE - 1/24, SYSDATE - 1/24 + 5/1440, SYSDATE - 1/24, N'VNPAY', N'txn_vnpay_001');
+VALUES (N'BK202404233001003', 3, NULL, 2, 4, 600000, 0, 600000, N'session_003', SYSDATE - 1/24, SYSDATE - 1/24 + 5/1440, SYSDATE - 1/24, N'VNPAY', N'txn_vnpay_001');
 
--- Booking 4: Oppenheimer (Showtime 4), 2 vé, Confirmed
+-- Booking 4: Oppenheimer (Showtime 4), 2 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404234001004', 4, NULL, 1, 2, 260000, 0, 260000, N'session_004', SYSDATE - 3, SYSDATE - 3 + 5/1440, SYSDATE - 3, N'STRIPE', N'txn_stripe_002');
+VALUES (N'BK202404234001004', 4, NULL, 2, 2, 260000, 0, 260000, N'session_004', SYSDATE - 3, SYSDATE - 3 + 5/1440, SYSDATE - 3, N'STRIPE', N'txn_stripe_002');
 
--- Booking 5: Oppenheimer (Showtime 5), 5 vé, Confirmed
+-- Booking 5: Oppenheimer (Showtime 5), 5 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404235001005', 5, NULL, 1, 5, 650000, 65000, 585000, N'session_005', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_002');
+VALUES (N'BK202404235001005', 5, NULL, 2, 5, 650000, 65000, 585000, N'session_005', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_002');
 
--- Booking 6: Godzilla x Kong (Showtime 7), 3 vé, Pending Payment
+-- Booking 6: Godzilla x Kong (Showtime 7), 3 vé, Pending Payment (Status=0)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt")
 VALUES (N'BK202404236001006', 7, NULL, 0, 3, 375000, 0, 375000, N'session_006', SYSDATE, SYSDATE + 5/1440);
 
--- Booking 7: Godzilla x Kong (Showtime 8), 2 vé, Expired
+-- Booking 7: Godzilla x Kong (Showtime 8), 2 vé, Expired (Status=4)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt")
-VALUES (N'BK202404237001007', 8, NULL, 3, 2, 250000, 0, 250000, N'session_007', SYSDATE - 1, SYSDATE - 1 + 5/1440);
+VALUES (N'BK202404237001007', 8, NULL, 4, 2, 250000, 0, 250000, N'session_007', SYSDATE - 1, SYSDATE - 1 + 5/1440);
 
--- Booking 8: Godzilla x Kong (Showtime 9), 6 vé, Confirmed
+-- Booking 8: Godzilla x Kong (Showtime 9), 6 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404238001008', 9, NULL, 1, 6, 840000, 84000, 756000, N'session_008', SYSDATE - 1/48, SYSDATE - 1/48 + 5/1440, SYSDATE - 1/48, N'VNPAY', N'txn_vnpay_002');
+VALUES (N'BK202404238001008', 9, NULL, 2, 6, 840000, 84000, 756000, N'session_008', SYSDATE - 1/48, SYSDATE - 1/48 + 5/1440, SYSDATE - 1/48, N'VNPAY', N'txn_vnpay_002');
 
--- Booking 9: Shawshank (Showtime 10), 2 vé, Confirmed
+-- Booking 9: Shawshank (Showtime 10), 2 vé, Confirmed (Status=2)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404239001009', 10, NULL, 1, 2, 200000, 0, 200000, N'session_009', SYSDATE - 5, SYSDATE - 5 + 5/1440, SYSDATE - 5, N'STRIPE', N'txn_stripe_003');
+VALUES (N'BK202404239001009', 10, NULL, 2, 2, 200000, 0, 200000, N'session_009', SYSDATE - 5, SYSDATE - 5 + 5/1440, SYSDATE - 5, N'STRIPE', N'txn_stripe_003');
 
--- Booking 10: Shawshank (Showtime 11), 4 vé, Cancelled
+-- Booking 10: Shawshank (Showtime 11), 4 vé, Cancelled (Status=3)
 INSERT INTO "Bookings" ("BookingCode", "ShowtimeId", "CustomerId", "Status", "TotalTickets", "SubTotal", "DiscountAmount", "TotalAmount", "SessionId", "BookedAt", "ExpiresAt", "PaidAt", "PaymentMethod", "TransactionId")
-VALUES (N'BK202404240001010', 11, NULL, 2, 4, 400000, 0, 400000, N'session_010', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_003');
+VALUES (N'BK202404240001010', 11, NULL, 3, 4, 400000, 0, 400000, N'session_010', SYSDATE - 2, SYSDATE - 2 + 5/1440, SYSDATE - 2, N'MOMO', N'txn_momo_003');
 
 -- =====================================================
 -- 5. SAMPLE TICKETS (Dữ liệu mẫu vé)

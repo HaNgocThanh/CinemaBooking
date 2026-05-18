@@ -6,6 +6,7 @@ using CinemaBooking.Domain.Entities;
 using CinemaBooking.Domain.Enums;
 using CinemaBooking.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CinemaBooking.Infrastructure.Services;
 
@@ -19,10 +20,12 @@ namespace CinemaBooking.Infrastructure.Services;
 public class BookingPaymentService : IBookingPaymentService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<BookingPaymentService> _logger;
 
-    public BookingPaymentService(ApplicationDbContext context)
+    public BookingPaymentService(ApplicationDbContext context, ILogger<BookingPaymentService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
@@ -188,7 +191,9 @@ public class BookingPaymentService : IBookingPaymentService
     /// <inheritdoc />
     public async Task<BookingStatusDto> RejectBookingAsync(int bookingId, string? reason = null)
     {
+        // Load booking cùng với navigation property ShowtimeSeats (được gán lúc CreateBooking)
         var booking = await _context.Bookings
+            .Include(b => b.ShowtimeSeats)
             .FirstOrDefaultAsync(b => b.Id == bookingId);
 
         if (booking == null)
@@ -204,38 +209,31 @@ public class BookingPaymentService : IBookingPaymentService
                 "Không thể hủy đơn ở trạng thái này.");
         }
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        // Đổi trạng thái đơn hàng
+        booking.Status = BookingStatus.Cancelled;
+        booking.Notes = string.IsNullOrEmpty(booking.Notes)
+            ? reason ?? "Admin từ chối đơn hàng."
+            : booking.Notes + " | " + (reason ?? "Admin từ chối đơn hàng.");
+        booking.UpdatedAt = DateTime.UtcNow;
+
+        // Giải phóng từng ghế qua entity (KHÔNG dùng ExecuteUpdateAsync để tránh
+        // conflict với pessimistic lock đang active trên ghế từ LockSeatsAsync)
+        foreach (var seat in booking.ShowtimeSeats)
         {
-            booking.Status = BookingStatus.Cancelled;
-            booking.Notes = string.IsNullOrEmpty(booking.Notes)
-                ? reason ?? "Admin từ chối đơn hàng."
-                : booking.Notes + " | " + (reason ?? "Admin từ chối đơn hàng.");
-            booking.UpdatedAt = DateTime.UtcNow;
-
-            // Giải phóng ghế dựa vào BookingId đã được gán lúc tạo Booking
-            // (Không cần Ticket vì vé chỉ được tạo khi Admin duyệt)
-            await _context.ShowtimeSeats
-                .Where(s => s.BookingId == bookingId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(x => x.Status, SeatStatus.Available)
-                    .SetProperty(x => x.LockedBySessionId, (string?)null)
-                    .SetProperty(x => x.LockedAt, (DateTime?)null)
-                    .SetProperty(x => x.HoldExpiryTime, (DateTime?)null)
-                    .SetProperty(x => x.TicketId, (int?)null)
-                    .SetProperty(x => x.BookedByUserId, (int?)null)
-                    .SetProperty(x => x.BookingId, (int?)null));
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return MapToStatusDto(booking);
+            seat.Status = SeatStatus.Available;
+            seat.LockedBySessionId = null;
+            seat.LockedAt = null;
+            seat.HoldExpiryTime = null;
+            seat.TicketId = null;
+            seat.BookedByUserId = null;
+            seat.BookingId = null;
+            seat.UpdatedAt = DateTime.UtcNow;
         }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+
+        // Lưu toàn bộ thay đổi xuống Oracle
+        await _context.SaveChangesAsync();
+
+        return MapToStatusDto(booking);
     }
 
     /// <inheritdoc />
@@ -316,6 +314,143 @@ public class BookingPaymentService : IBookingPaymentService
             PaidAt = booking.PaidAt,
             TotalAmount = booking.TotalAmount,
             RemainingSeconds = Math.Max(0, 300 - (int)(DateTime.UtcNow - booking.CreatedAt).TotalSeconds)
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<ETicketDto> GetETicketAsync(int bookingId, int? customerId = null)
+    {
+        var query = _context.Bookings
+            .Include(b => b.Tickets)
+                .ThenInclude(t => t.ShowtimeSeat)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Movie)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Room)
+            .AsQueryable();
+
+        if (customerId.HasValue && customerId.Value > 0)
+        {
+            query = query.Where(b => b.CustomerId == customerId.Value);
+        }
+
+        var booking = await query.FirstOrDefaultAsync(b => b.Id == bookingId);
+
+        if (booking == null)
+        {
+            throw new BookingNotFoundException(bookingId);
+        }
+
+        if (booking.Status != BookingStatus.Success)
+        {
+            throw new BookingInvalidStateException(
+                bookingId,
+                booking.Status,
+                "Vé chỉ có thể xem khi đơn đặt vé đã được thanh toán thành công.");
+        }
+
+        var showtime = booking.Showtime!;
+        var movie = showtime.Movie!;
+        var room = showtime.Room!;
+
+        // Gom ten cac ghe thanh mot chuoi VD: "A1, A2, A3"
+        var seatNames = string.Join(", ", booking.Tickets
+            .Select(t => t.ShowtimeSeat?.SeatNumber)
+            .Where(n => n != null)
+            .OrderBy(n => n)
+            .Select(n => n!));
+
+        // Tao chuoi QR code data
+        var qrData = $"CINEMA_TICKET_{booking.Id}_{booking.CustomerId ?? 0}_{booking.BookingCode}_{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+        // Format thoi gian
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var localStart = TimeZoneInfo.ConvertTimeFromUtc(showtime.StartTime, timeZone);
+        var localEnd = TimeZoneInfo.ConvertTimeFromUtc(showtime.EndTime, timeZone);
+        var localBookedAt = TimeZoneInfo.ConvertTimeFromUtc(booking.BookedAt, timeZone);
+
+        return new ETicketDto
+        {
+            BookingId = booking.Id,
+            BookingCode = booking.BookingCode,
+            MovieTitle = movie.Title,
+            PosterUrl = movie.PosterUrl,
+            CinemaName = "CGV Cinema", // Lay tu config neu can
+            RoomName = room.Name,
+            StartTime = localStart.ToString("HH:mm"),
+            EndTime = localEnd.ToString("HH:mm"),
+            ShowDate = localStart.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN")),
+            SeatNames = seatNames,
+            TotalTickets = booking.TotalTickets,
+            TotalAmount = booking.TotalAmount,
+            PaymentMethod = booking.PaymentMethod ?? "QR Code",
+            QrCodeData = qrData,
+            BookedAt = localBookedAt
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<BookingHistoryListDto> GetMyHistoryAsync(int customerId)
+    {
+        _logger.LogInformation("User {UserId} is requesting ticket history (GetMyHistoryAsync)", customerId);
+
+        // DEBUG: temporarily remove Status filter to verify data returns
+        var bookings = await _context.Bookings
+            .Include(b => b.Tickets)
+                .ThenInclude(t => t.ShowtimeSeat)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Movie)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Room)
+            .Where(b => b.CustomerId == customerId)
+            // .Where(b =>
+            //     b.Status == BookingStatus.Success ||
+            //     b.Status == BookingStatus.Cancelled ||
+            //     b.Status == BookingStatus.Expired)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        _logger.LogInformation(
+            "GetMyHistoryAsync: UserId={UserId}, Found {Count} bookings (Status filter disabled for debug)",
+            customerId, bookings.Count);
+
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+        var items = bookings.Select(b =>
+        {
+            var showtime = b.Showtime!;
+            var localStart = TimeZoneInfo.ConvertTimeFromUtc(showtime.StartTime, timeZone);
+            var localBookedAt = TimeZoneInfo.ConvertTimeFromUtc(b.BookedAt, timeZone);
+
+            var seatNames = string.Join(", ",
+                b.Tickets
+                    .Select(t => t.ShowtimeSeat?.SeatNumber)
+                    .Where(n => n != null)
+                    .OrderBy(n => n)
+                    .Select(n => n!));
+
+            return new BookingHistoryDto
+            {
+                BookingId = b.Id,
+                BookingCode = b.BookingCode,
+                MovieTitle = showtime.Movie?.Title ?? "Unknown",
+                PosterUrl = showtime.Movie?.PosterUrl,
+                RoomName = showtime.Room?.Name ?? "Unknown",
+                ShowDate = localStart.ToString("dd/MM/yyyy"),
+                StartTime = localStart.ToString("HH:mm"),
+                SeatNames = seatNames,
+                TotalTickets = b.TotalTickets,
+                TotalAmount = b.TotalAmount,
+                Status = b.Status.ToString(),
+                StatusValue = (int)b.Status,
+                BookedAt = localBookedAt.ToString("dd/MM/yyyy HH:mm")
+            };
+        }).ToList();
+
+        return new BookingHistoryListDto
+        {
+            Items = items,
+            TotalCount = items.Count
         };
     }
 }
