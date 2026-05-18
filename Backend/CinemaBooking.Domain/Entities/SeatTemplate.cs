@@ -28,6 +28,12 @@ public class SeatTemplate
     /// <summary>Thứ tự sắp xếp trong phòng (để sort).</summary>
     public int DisplayOrder { get; set; }
 
+    /// <summary>Chỉ số hàng trên lưới (0-based, dùng cho SeatMapBuilder).</summary>
+    public int GridRow { get; set; }
+
+    /// <summary>Chỉ số cột trên lưới (0-based, dùng cho SeatMapBuilder).</summary>
+    public int GridColumn { get; set; }
+
     // Navigation property
     public virtual Room? Room { get; set; }
 }

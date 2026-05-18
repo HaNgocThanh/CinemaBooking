@@ -1,9 +1,9 @@
 import { Table, Tag, Space, Button, Tooltip, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, EyeOutlined, AppstoreOutlined } from '@ant-design/icons';
 
 const { Column } = Table;
 
-export function RoomTable({ rooms, loading, onEdit, onDelete, onViewSeats }) {
+export function RoomTable({ rooms, loading, onEdit, onDelete, onViewSeats, onEditLayout }) {
   const getTypeTag = (type) => {
     const colorMap = {
       '2D': 'blue',
@@ -75,7 +75,15 @@ export function RoomTable({ rooms, loading, onEdit, onDelete, onViewSeats }) {
                 onClick={() => onViewSeats(record)}
               />
             </Tooltip>
-            <Tooltip title="Chinh sua">
+            <Tooltip title="Chinh sua so do ghe">
+              <Button
+                type="default"
+                icon={<AppstoreOutlined />}
+                size="small"
+                onClick={() => onEditLayout(record)}
+              />
+            </Tooltip>
+            <Tooltip title="Chinh sua thong tin">
               <Button
                 type="primary"
                 icon={<EditOutlined />}

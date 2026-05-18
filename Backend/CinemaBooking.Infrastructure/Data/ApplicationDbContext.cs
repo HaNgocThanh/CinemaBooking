@@ -1,6 +1,7 @@
 using CinemaBooking.Domain.Entities;
 using CinemaBooking.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CinemaBooking.Infrastructure.Data;
 
@@ -36,7 +37,8 @@ public class ApplicationDbContext : DbContext
             {
                 if (property.ClrType == typeof(bool))
                 {
-                    property.SetColumnType("NUMBER(1)");
+                    property.SetValueConverter(
+                        new ValueConverter<bool, int>(v => v ? 1 : 0, v => v == 1));
                 }
             }
         }
@@ -110,8 +112,7 @@ public class ApplicationDbContext : DbContext
                 .HasColumnName("BannerUrl");
 
             entity.Property(e => e.IsFeatured)
-                .HasColumnName("IsFeatured")
-                .HasDefaultValue(false);
+                .HasColumnName("IsFeatured");
 
             entity.Property(e => e.ReleaseDate)
                 .HasColumnName("ReleaseDate")
@@ -122,8 +123,7 @@ public class ApplicationDbContext : DbContext
                 .HasColumnType("DATE");
 
             entity.Property(e => e.IsActive)
-                .HasColumnName("IsActive")
-                .HasDefaultValue(true);
+                .HasColumnName("IsActive");
 
             entity.Property(e => e.Status)
                 .HasColumnName("Status")
@@ -293,8 +293,7 @@ public class ApplicationDbContext : DbContext
                 .HasDefaultValue(0);
 
             entity.Property(e => e.IsActive)
-                .HasColumnName("IsActive")
-                .HasDefaultValue(true);
+                .HasColumnName("IsActive");
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("CreatedAt")
@@ -607,8 +606,7 @@ public class ApplicationDbContext : DbContext
                 .HasDefaultValue("STANDARD");
 
             entity.Property(e => e.IsActive)
-                .HasColumnName("IsActive")
-                .HasDefaultValue(true);
+                .HasColumnName("IsActive");
 
             entity.Property(e => e.IssuedAt)
                 .HasColumnName("IssuedAt")
@@ -714,12 +712,10 @@ public class ApplicationDbContext : DbContext
                 .HasDefaultValue(UserRole.Customer);
 
             entity.Property(e => e.IsEmailConfirmed)
-                .HasColumnName("IsEmailConfirmed")
-                .HasDefaultValue(false);
+                .HasColumnName("IsEmailConfirmed");
 
             entity.Property(e => e.IsActive)
-                .HasColumnName("IsActive")
-                .HasDefaultValue(true);
+                .HasColumnName("IsActive");
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("CreatedAt")

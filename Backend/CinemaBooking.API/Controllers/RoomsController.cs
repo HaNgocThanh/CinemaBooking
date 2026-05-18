@@ -169,4 +169,52 @@ public class RoomsController : ControllerBase
             ));
         }
     }
+
+    /// <summary>
+    /// Luu danh sach mau ghe (SeatTemplate) cho mot phong.
+    /// Xoa toan bo SeatTemplate cu cua phong, then tao moi tu danh sach nguoi dung ve.
+    /// Neu phong co suat chieu dang hoat dong, chi cap nhat Capacity, khong thay doi SeatTemplate hien tai.
+    /// </summary>
+    /// <param name="id">Room ID</param>
+    /// <param name="dto">Danh sach ghe can luu</param>
+    [HttpPost("{id:int}/seats")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiSuccessResponse<bool>>> SaveSeatTemplates(
+        int id,
+        [FromBody] BulkCreateSeatTemplateDto dto)
+    {
+        _logger.LogInformation("Saving {SeatCount} seat templates for room ID: {RoomId}", dto.Seats.Count, id);
+
+        if (dto.Seats == null || dto.Seats.Count == 0)
+        {
+            return BadRequest(new ApiErrorResponse(
+                code: "EMPTY_SEATS",
+                message: "Danh sach ghe khong duoc de trong.",
+                httpStatus: StatusCodes.Status400BadRequest,
+                traceId: HttpContext.TraceIdentifier
+            ));
+        }
+
+        try
+        {
+            var result = await _roomService.SaveSeatTemplatesAsync(id, dto);
+
+            return Ok(new ApiSuccessResponse<bool>(
+                data: true,
+                message: $"Luu {dto.Seats.Count} ghe cho phong ID {id} thanh cong.",
+                traceId: HttpContext.TraceIdentifier
+            ));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ApiErrorResponse(
+                code: "SAVE_SEATS_FAILED",
+                message: ex.Message,
+                httpStatus: StatusCodes.Status400BadRequest,
+                traceId: HttpContext.TraceIdentifier
+            ));
+        }
+    }
 }

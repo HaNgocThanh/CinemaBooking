@@ -1,4 +1,4 @@
-D:\CinemaBooking\src\Backend\CinemaBooking.Domain\bin\Debug\net10.0\CinemaBooking.Domain.deps.json
+d:\CinemaBooking\src\Backend\CinemaBooking.Domain\bin\Debug\net10.0\CinemaBooking.Domain.deps.json
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\bin\Debug\net10.0\CinemaBooking.Domain.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\bin\Debug\net10.0\CinemaBooking.Domain.pdb
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.GeneratedMSBuildEditorConfig.editorconfig
@@ -9,4 +9,4 @@ D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBookin
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\refint\CinemaBooking.Domain.dll
 D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\CinemaBooking.Domain.pdb
-D:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\ref\CinemaBooking.Domain.dll
+d:\CinemaBooking\src\Backend\CinemaBooking.Domain\obj\Debug\net10.0\ref\CinemaBooking.Domain.dll

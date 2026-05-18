@@ -1,5 +1,5 @@
-import { Table, Tag, Space } from 'antd';
-import { ClockCircleOutlined } from '@ant-design/icons';
+import { Table, Tag, Space, Button, Tooltip } from 'antd';
+import { EditOutlined, ClockCircleOutlined } from '@ant-design/icons';
 
 const { Column } = Table;
 
@@ -7,7 +7,7 @@ const { Column } = Table;
  * ShowtimeTable
  * Presentational component: displays showtime list with Ant Design Table
  */
-export function ShowtimeTable({ showtimes, loading }) {
+export function ShowtimeTable({ showtimes, loading, onEdit }) {
   const formatDateTime = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -114,6 +114,22 @@ export function ShowtimeTable({ showtimes, loading }) {
         key="isActive"
         render={getStatusTag}
         width={120}
+      />
+      <Column
+        title="Hanh dong"
+        key="actions"
+        width={80}
+        align="center"
+        render={(_, record) => (
+          <Tooltip title="Sua suat chieu">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(record)}
+              className="text-blue-500 hover:text-blue-700"
+            />
+          </Tooltip>
+        )}
       />
     </Table>
   );

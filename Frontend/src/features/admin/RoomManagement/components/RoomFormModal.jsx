@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Spin } from 'antd';
+import { Modal, Form, Input, Select, Spin } from 'antd';
 
 const ROOM_TYPES = [
   { value: '2D', label: '2D' },
@@ -24,7 +24,6 @@ export function RoomFormModal({
         form.setFieldsValue({
           name: initialValues.name,
           type: initialValues.type,
-          capacity: initialValues.capacity,
         });
       }
     }
@@ -75,27 +74,6 @@ export function RoomFormModal({
               placeholder="Chon loai phong"
               options={ROOM_TYPES}
               style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="capacity"
-            label="Suc chua (so ghe)"
-            rules={[
-              { required: true, message: 'Vui long nhap suc chua' },
-              { type: 'number', min: 1, message: 'Suc chua phai lon hon 0' },
-              { type: 'number', max: 1000, message: 'Suc chua toi da 1000 ghe' },
-            ]}
-          >
-            <InputNumber
-              min={1}
-              max={1000}
-              style={{ width: '100%' }}
-              placeholder="VD: 20"
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-              }
-              parser={(value) => value.replace(/,/g, '')}
             />
           </Form.Item>
         </Form>

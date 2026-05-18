@@ -568,11 +568,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
+      "projectUniqueName": "d:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
       "projectName": "CinemaBooking.Application",
-      "projectPath": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
+      "projectPath": "d:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
       "packagesPath": "C:\\Users\\hango\\.nuget\\packages\\",
-      "outputPath": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\obj\\",
+      "outputPath": "d:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -12,4 +12,5 @@ public interface IRoomService
     Task<bool> UpdateRoomAsync(int id, UpdateRoomDto dto);
     Task<bool> DeleteRoomAsync(int id);
     Task<List<SeatTemplateDto>> GetSeatTemplatesByRoomIdAsync(int roomId);
+    Task<bool> SaveSeatTemplatesAsync(int roomId, BulkCreateSeatTemplateDto dto);
 }

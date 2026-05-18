@@ -14,8 +14,10 @@ public class CreateShowtimeDto
     [Required]
     public DateTime StartTime { get; set; }
 
-    [Required]
-    public DateTime EndTime { get; set; }
+    /// <summary>
+    /// Thoi gian ket thuc. Neu khong cung cap, se tu dong tinh = StartTime + DurationMinutes + 15 phut nghi.
+    /// </summary>
+    public DateTime? EndTime { get; set; }
 
     [Required]
     [Range(0, double.MaxValue)]

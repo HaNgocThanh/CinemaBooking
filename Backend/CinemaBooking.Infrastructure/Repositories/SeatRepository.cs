@@ -58,10 +58,10 @@ public class SeatRepository : ISeatRepository
                 var statusAvailable = (int)SeatStatus.Available;
                 
                 var sql = $"""
-                    SELECT * FROM ShowtimeSeats 
-                    WHERE Id IN ({seatIdList})
-                      AND ShowtimeId = {showtimeId}
-                      AND Status = {statusAvailable}
+                    SELECT * FROM "ShowtimeSeats"
+                    WHERE "Id" IN ({seatIdList})
+                      AND "ShowtimeId" = {showtimeId}
+                      AND "Status" = {statusAvailable}
                     FOR UPDATE NOWAIT
                 """;
 

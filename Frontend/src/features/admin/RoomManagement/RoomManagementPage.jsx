@@ -3,9 +3,9 @@ import { Button, message, Drawer } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { RoomTable } from './components/RoomTable';
 import { RoomFormModal } from './components/RoomFormModal';
-import { SeatLayoutModal } from './components/SeatLayoutModal';
-import { SeatLayoutGrid } from './components/SeatLayoutGrid';
-import { useRooms } from './hooks/useRooms';
+import { SeatMapBuilder } from './components/SeatMapBuilder';
+import { SeatMapViewer } from './components/SeatMapViewer';
+import { useRooms, useSeatTemplateMutation } from './hooks/useRooms';
 
 export function RoomManagementPage() {
   const {
@@ -21,11 +21,13 @@ export function RoomManagementPage() {
     isDeleting,
   } = useRooms();
 
+  const { saveSeatTemplates, isSaving } = useSeatTemplateMutation();
+
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [seatModalVisible, setSeatModalVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [isEditingLayout, setIsEditingLayout] = useState(false);
 
   const isMutating = isCreating || isUpdating;
 
@@ -41,6 +43,13 @@ export function RoomManagementPage() {
 
   const handleViewSeats = (room) => {
     setSelectedRoom(room);
+    setIsEditingLayout(false);
+    setDrawerVisible(true);
+  };
+
+  const handleEditLayout = (room) => {
+    setSelectedRoom(room);
+    setIsEditingLayout(true);
     setDrawerVisible(true);
   };
 
@@ -74,6 +83,18 @@ export function RoomManagementPage() {
     setEditingRoom(null);
   };
 
+  const handleSaveLayout = async (seats, totalSeats) => {
+    try {
+      await saveSeatTemplates(selectedRoom.id, seats, totalSeats);
+      message.success(`Da luu ${totalSeats} ghe cho phong "${selectedRoom.name}"!`);
+      setDrawerVisible(false);
+      setSelectedRoom(null);
+    } catch (err) {
+      message.error(err?.message || 'Co loi khi luu so do ghe!');
+      throw err;
+    }
+  };
+
   return (
     <div className="room-management-page">
       <div className="page-header">
@@ -103,6 +124,7 @@ export function RoomManagementPage() {
         onEdit={handleEditRoom}
         onDelete={handleDeleteRoom}
         onViewSeats={handleViewSeats}
+        onEditLayout={handleEditLayout}
       />
 
       <RoomFormModal
@@ -114,19 +136,10 @@ export function RoomManagementPage() {
         mode={editingRoom ? 'edit' : 'create'}
       />
 
-      <SeatLayoutModal
-        open={seatModalVisible}
-        onCancel={() => {
-          setSeatModalVisible(false);
-          setSelectedRoom(null);
-        }}
-        room={selectedRoom}
-      />
-
       <Drawer
-        title={`So Do Ghe - ${selectedRoom?.name || ''}`}
+        title={isEditingLayout ? `Chinh sua so do - ${selectedRoom?.name || ''}` : `So do ghe - ${selectedRoom?.name || ''}`}
         placement="right"
-        width={480}
+        width={560}
         onClose={() => {
           setDrawerVisible(false);
           setSelectedRoom(null);
@@ -134,7 +147,19 @@ export function RoomManagementPage() {
         open={drawerVisible}
       >
         {selectedRoom && (
-          <SeatLayoutGrid roomId={selectedRoom.id} roomName={selectedRoom.name} />
+          isEditingLayout ? (
+            <SeatMapBuilder
+              roomId={selectedRoom.id}
+              onSave={handleSaveLayout}
+              onCancel={() => setDrawerVisible(false)}
+              isSaving={isSaving}
+            />
+          ) : (
+            <SeatMapViewer
+              roomId={selectedRoom.id}
+              roomName={selectedRoom.name}
+            />
+          )
         )}
       </Drawer>
     </div>

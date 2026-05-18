@@ -34,6 +34,14 @@ export function useShowtimes() {
     },
   });
 
+  // Update showtime mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => showtimeAdminApi.updateShowtime(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['showtimes'] });
+    },
+  });
+
   return {
     // Data
     showtimes: showtimesQuery.data?.data || [],
@@ -49,8 +57,10 @@ export function useShowtimes() {
 
     // Mutations
     createShowtime: (data) => createMutation.mutateAsync(data),
+    updateShowtime: ({ id, data }) => updateMutation.mutateAsync({ id, data }),
 
     // Mutation states
     isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
   };
 }

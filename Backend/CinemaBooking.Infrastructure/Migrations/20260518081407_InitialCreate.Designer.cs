@@ -12,8 +12,8 @@ using Oracle.EntityFrameworkCore.Metadata;
 namespace CinemaBooking.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260416194241_AddUserAuthentication")]
-    partial class AddUserAuthentication
+    [Migration("20260518081407_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,6 +148,10 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("NVARCHAR2(2000)")
+                        .HasColumnName("BannerUrl");
+
                     b.Property<string>("Cast")
                         .HasMaxLength(500)
                         .HasColumnType("NVARCHAR2(500)")
@@ -180,11 +184,13 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NVARCHAR2(100)")
                         .HasColumnName("Genre");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
+
+                    b.Property<int>("IsFeatured")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("IsFeatured");
 
                     b.Property<string>("Language")
                         .HasMaxLength(50)
@@ -204,6 +210,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("ReleaseDate");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasDefaultValue(0)
+                        .HasColumnName("Status");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -221,6 +233,541 @@ namespace CinemaBooking.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Movies", (string)null);
+                });
+
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.Room", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Id");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Capacity");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR2(50)")
+                        .HasColumnName("Name");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR2(50)")
+                        .HasColumnName("Type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rooms", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Capacity = 20,
+                            Name = "Phòng 01",
+                            Type = "2D"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Capacity = 20,
+                            Name = "Phòng 02",
+                            Type = "3D"
+                        });
+                });
+
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.SeatTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Id");
+
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("DisplayOrder");
+
+                    b.Property<int>("GridColumn")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<int>("GridRow")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Number");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("RoomId");
+
+                    b.Property<string>("Row")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("NVARCHAR2(5)")
+                        .HasColumnName("Row");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId")
+                        .HasDatabaseName("IX_SeatTemplate_RoomId");
+
+                    b.HasIndex("RoomId", "Row", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("UX_SeatTemplate_RoomId_Row_Number");
+
+                    b.ToTable("SeatTemplates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DisplayOrder = 1,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 1,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DisplayOrder = 2,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 1,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            DisplayOrder = 3,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 1,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 4,
+                            DisplayOrder = 4,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 1,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 5,
+                            DisplayOrder = 5,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 1,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 6,
+                            DisplayOrder = 6,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 1,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 7,
+                            DisplayOrder = 7,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 1,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 8,
+                            DisplayOrder = 8,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 1,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 9,
+                            DisplayOrder = 9,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 1,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 10,
+                            DisplayOrder = 10,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 1,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 11,
+                            DisplayOrder = 11,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 1,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 12,
+                            DisplayOrder = 12,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 1,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 13,
+                            DisplayOrder = 13,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 1,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 14,
+                            DisplayOrder = 14,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 1,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 15,
+                            DisplayOrder = 15,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 1,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 16,
+                            DisplayOrder = 16,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 1,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 17,
+                            DisplayOrder = 17,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 1,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 18,
+                            DisplayOrder = 18,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 1,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 19,
+                            DisplayOrder = 19,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 1,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 20,
+                            DisplayOrder = 20,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 1,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 21,
+                            DisplayOrder = 1,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 2,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 22,
+                            DisplayOrder = 2,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 2,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 23,
+                            DisplayOrder = 3,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 2,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 24,
+                            DisplayOrder = 4,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 2,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 25,
+                            DisplayOrder = 5,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 2,
+                            Row = "A",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 26,
+                            DisplayOrder = 6,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 2,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 27,
+                            DisplayOrder = 7,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 2,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 28,
+                            DisplayOrder = 8,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 2,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 29,
+                            DisplayOrder = 9,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 2,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 30,
+                            DisplayOrder = 10,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 2,
+                            Row = "B",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 31,
+                            DisplayOrder = 11,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 2,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 32,
+                            DisplayOrder = 12,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 2,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 33,
+                            DisplayOrder = 13,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 2,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 34,
+                            DisplayOrder = 14,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 2,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 35,
+                            DisplayOrder = 15,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 2,
+                            Row = "C",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 36,
+                            DisplayOrder = 16,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 1,
+                            RoomId = 2,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 37,
+                            DisplayOrder = 17,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 2,
+                            RoomId = 2,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 38,
+                            DisplayOrder = 18,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 3,
+                            RoomId = 2,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 39,
+                            DisplayOrder = 19,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 4,
+                            RoomId = 2,
+                            Row = "D",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 40,
+                            DisplayOrder = 20,
+                            GridColumn = 0,
+                            GridRow = 0,
+                            Number = 5,
+                            RoomId = 2,
+                            Row = "D",
+                            Type = 1
+                        });
                 });
 
             modelBuilder.Entity("CinemaBooking.Domain.Entities.Showtime", b =>
@@ -251,21 +798,17 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("EndTime");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
                     b.Property<int>("MovieId")
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("MovieId");
 
-                    b.Property<string>("RoomNumber")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("NVARCHAR2(10)")
-                        .HasColumnName("RoomNumber");
+                    b.Property<int>("RoomId")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("RoomId");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("DATE")
@@ -283,6 +826,8 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     b.HasIndex("MovieId")
                         .HasDatabaseName("IX_Showtime_MovieId");
+
+                    b.HasIndex("RoomId");
 
                     b.HasIndex("StartTime", "IsActive")
                         .HasDatabaseName("IX_Showtime_StartTime_IsActive");
@@ -349,6 +894,10 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("TicketId");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("Type");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("DATE")
                         .HasColumnName("UpdatedAt");
@@ -388,10 +937,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("CreatedAt");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
                     b.Property<DateTime>("IssuedAt")
@@ -487,16 +1034,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NVARCHAR2(200)")
                         .HasColumnName("FullName");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
-                    b.Property<bool>("IsEmailConfirmed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(false)
+                    b.Property<int>("IsEmailConfirmed")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsEmailConfirmed");
 
                     b.Property<DateTime?>("LastLogin")
@@ -524,6 +1067,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("UpdatedAt");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("NVARCHAR2(50)")
+                        .HasColumnName("Username");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt")
@@ -535,6 +1084,10 @@ namespace CinemaBooking.Infrastructure.Migrations
 
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_User_IsActive");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("UX_User_Username");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -557,6 +1110,17 @@ namespace CinemaBooking.Infrastructure.Migrations
                     b.Navigation("Showtime");
                 });
 
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.SeatTemplate", b =>
+                {
+                    b.HasOne("CinemaBooking.Domain.Entities.Room", "Room")
+                        .WithMany("SeatTemplates")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("CinemaBooking.Domain.Entities.Showtime", b =>
                 {
                     b.HasOne("CinemaBooking.Domain.Entities.Movie", "Movie")
@@ -565,7 +1129,15 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CinemaBooking.Domain.Entities.Room", "Room")
+                        .WithMany("Showtimes")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Movie");
+
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("CinemaBooking.Domain.Entities.ShowtimeSeat", b =>
@@ -605,6 +1177,13 @@ namespace CinemaBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("CinemaBooking.Domain.Entities.Movie", b =>
                 {
+                    b.Navigation("Showtimes");
+                });
+
+            modelBuilder.Entity("CinemaBooking.Domain.Entities.Room", b =>
+                {
+                    b.Navigation("SeatTemplates");
+
                     b.Navigation("Showtimes");
                 });
 

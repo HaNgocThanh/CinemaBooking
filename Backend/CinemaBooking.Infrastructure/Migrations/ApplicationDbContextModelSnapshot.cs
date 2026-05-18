@@ -181,16 +181,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NVARCHAR2(100)")
                         .HasColumnName("Genre");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
-                    b.Property<bool>("IsFeatured")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(false)
+                    b.Property<int>("IsFeatured")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsFeatured");
 
                     b.Property<string>("Language")
@@ -293,6 +289,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("DisplayOrder");
 
+                    b.Property<int>("GridColumn")
+                        .HasColumnType("NUMBER(10)");
+
+                    b.Property<int>("GridRow")
+                        .HasColumnType("NUMBER(10)");
+
                     b.Property<int>("Number")
                         .HasColumnType("NUMBER(10)")
                         .HasColumnName("Number");
@@ -327,6 +329,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 1,
                             DisplayOrder = 1,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 1,
                             Row = "A",
@@ -336,6 +340,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 2,
                             DisplayOrder = 2,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 1,
                             Row = "A",
@@ -345,6 +351,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 3,
                             DisplayOrder = 3,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 1,
                             Row = "A",
@@ -354,6 +362,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 4,
                             DisplayOrder = 4,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 1,
                             Row = "A",
@@ -363,6 +373,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 5,
                             DisplayOrder = 5,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 1,
                             Row = "A",
@@ -372,6 +384,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 6,
                             DisplayOrder = 6,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 1,
                             Row = "B",
@@ -381,6 +395,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 7,
                             DisplayOrder = 7,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 1,
                             Row = "B",
@@ -390,6 +406,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 8,
                             DisplayOrder = 8,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 1,
                             Row = "B",
@@ -399,6 +417,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 9,
                             DisplayOrder = 9,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 1,
                             Row = "B",
@@ -408,6 +428,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 10,
                             DisplayOrder = 10,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 1,
                             Row = "B",
@@ -417,6 +439,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 11,
                             DisplayOrder = 11,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 1,
                             Row = "C",
@@ -426,6 +450,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 12,
                             DisplayOrder = 12,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 1,
                             Row = "C",
@@ -435,6 +461,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 13,
                             DisplayOrder = 13,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 1,
                             Row = "C",
@@ -444,6 +472,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 14,
                             DisplayOrder = 14,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 1,
                             Row = "C",
@@ -453,6 +483,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 15,
                             DisplayOrder = 15,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 1,
                             Row = "C",
@@ -462,6 +494,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 16,
                             DisplayOrder = 16,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 1,
                             Row = "D",
@@ -471,6 +505,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 17,
                             DisplayOrder = 17,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 1,
                             Row = "D",
@@ -480,6 +516,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 18,
                             DisplayOrder = 18,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 1,
                             Row = "D",
@@ -489,6 +527,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 19,
                             DisplayOrder = 19,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 1,
                             Row = "D",
@@ -498,6 +538,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 20,
                             DisplayOrder = 20,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 1,
                             Row = "D",
@@ -507,6 +549,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 21,
                             DisplayOrder = 1,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 2,
                             Row = "A",
@@ -516,6 +560,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 22,
                             DisplayOrder = 2,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 2,
                             Row = "A",
@@ -525,6 +571,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 23,
                             DisplayOrder = 3,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 2,
                             Row = "A",
@@ -534,6 +582,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 24,
                             DisplayOrder = 4,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 2,
                             Row = "A",
@@ -543,6 +593,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 25,
                             DisplayOrder = 5,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 2,
                             Row = "A",
@@ -552,6 +604,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 26,
                             DisplayOrder = 6,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 2,
                             Row = "B",
@@ -561,6 +615,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 27,
                             DisplayOrder = 7,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 2,
                             Row = "B",
@@ -570,6 +626,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 28,
                             DisplayOrder = 8,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 2,
                             Row = "B",
@@ -579,6 +637,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 29,
                             DisplayOrder = 9,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 2,
                             Row = "B",
@@ -588,6 +648,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 30,
                             DisplayOrder = 10,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 2,
                             Row = "B",
@@ -597,6 +659,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 31,
                             DisplayOrder = 11,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 2,
                             Row = "C",
@@ -606,6 +670,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 32,
                             DisplayOrder = 12,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 2,
                             Row = "C",
@@ -615,6 +681,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 33,
                             DisplayOrder = 13,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 2,
                             Row = "C",
@@ -624,6 +692,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 34,
                             DisplayOrder = 14,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 2,
                             Row = "C",
@@ -633,6 +703,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 35,
                             DisplayOrder = 15,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 2,
                             Row = "C",
@@ -642,6 +714,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 36,
                             DisplayOrder = 16,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 1,
                             RoomId = 2,
                             Row = "D",
@@ -651,6 +725,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 37,
                             DisplayOrder = 17,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 2,
                             RoomId = 2,
                             Row = "D",
@@ -660,6 +736,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 38,
                             DisplayOrder = 18,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 3,
                             RoomId = 2,
                             Row = "D",
@@ -669,6 +747,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 39,
                             DisplayOrder = 19,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 4,
                             RoomId = 2,
                             Row = "D",
@@ -678,6 +758,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         {
                             Id = 40,
                             DisplayOrder = 20,
+                            GridColumn = 0,
+                            GridRow = 0,
                             Number = 5,
                             RoomId = 2,
                             Row = "D",
@@ -713,10 +795,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("EndTime");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
                     b.Property<int>("MovieId")
@@ -854,10 +934,8 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("DATE")
                         .HasColumnName("CreatedAt");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
                     b.Property<DateTime>("IssuedAt")
@@ -953,16 +1031,12 @@ namespace CinemaBooking.Infrastructure.Migrations
                         .HasColumnType("NVARCHAR2(200)")
                         .HasColumnName("FullName");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(true)
+                    b.Property<int>("IsActive")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsActive");
 
-                    b.Property<bool>("IsEmailConfirmed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(1)")
-                        .HasDefaultValue(false)
+                    b.Property<int>("IsEmailConfirmed")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("IsEmailConfirmed");
 
                     b.Property<DateTime?>("LastLogin")

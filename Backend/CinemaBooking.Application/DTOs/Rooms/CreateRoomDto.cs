@@ -4,13 +4,10 @@ namespace CinemaBooking.Application.DTOs.Rooms;
 
 public class CreateRoomDto
 {
-    [Required]
     [StringLength(50, MinimumLength = 1)]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
-    [Range(1, 1000)]
-    public int Capacity { get; set; }
+    public int Capacity { get; set; } // Auto-synced from seat layout; default 0
 
     [Required]
     [StringLength(50, MinimumLength = 1)]

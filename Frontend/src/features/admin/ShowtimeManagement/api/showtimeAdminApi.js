@@ -8,8 +8,14 @@ export const showtimeAdminApi = {
   getAllShowtimes: () =>
     axiosClient.get('/showtimes'),
 
+  getShowtimeById: (id) =>
+    axiosClient.get(`/showtimes/${id}`),
+
   createShowtime: (data) =>
     axiosClient.post('/showtimes', data),
+
+  updateShowtime: (id, data) =>
+    axiosClient.put(`/showtimes/${id}`, data),
 
   deleteShowtime: (id) =>
     axiosClient.delete(`/showtimes/${id}`),

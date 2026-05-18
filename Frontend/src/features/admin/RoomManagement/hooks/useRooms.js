@@ -54,3 +54,21 @@ export function useSeatTemplates(roomId) {
     enabled: !!roomId,
   });
 }
+
+export function useSeatTemplateMutation() {
+  const queryClient = useQueryClient();
+
+  const saveMutation = useMutation({
+    mutationFn: ({ roomId, seats, totalSeats }) => roomAdminApi.saveSeatTemplates(roomId, seats, totalSeats),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['seatTemplates', variables.roomId] });
+      queryClient.invalidateQueries({ queryKey: ['rooms'] });
+    },
+  });
+
+  return {
+    saveSeatTemplates: (roomId, seats, totalSeats) => saveMutation.mutateAsync({ roomId, seats, totalSeats }),
+    isSaving: saveMutation.isPending,
+    saveError: saveMutation.error,
+  };
+}

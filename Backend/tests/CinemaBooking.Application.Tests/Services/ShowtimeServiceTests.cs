@@ -627,4 +627,689 @@ public class ShowtimeServiceTests
     }
 
     #endregion
+
+    #region === GetByIdAsync - Tests ===
+
+    [Test]
+    public async Task GetByIdAsync_ExistingShowtime_ReturnsShowtimeDto()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong Test", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Tim Kiem",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var startTime = DateTime.UtcNow.AddDays(1);
+        var endTime = startTime.AddHours(2);
+        var showtime = new Showtime
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = startTime,
+            EndTime = endTime,
+            BasePrice = 150000m,
+            TotalSeats = 20,
+            BookedSeatsCount = 5,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Showtimes.Add(showtime);
+        await _dbContext.SaveChangesAsync();
+
+        // ========== ACT ==========
+        var result = await _showtimeService.GetByIdAsync(showtime.Id);
+
+        // ========== ASSERT ==========
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(showtime.Id);
+        result.MovieId.Should().Be(movie.Id);
+        result.MovieTitle.Should().Be("Phim Tim Kiem");
+        result.RoomId.Should().Be(room.Id);
+        result.RoomName.Should().Be("Phong Test");
+        result.StartTime.Should().Be(startTime);
+        result.EndTime.Should().Be(endTime);
+        result.BasePrice.Should().Be(150000m);
+        result.TotalSeats.Should().Be(20);
+        result.BookedSeatsCount.Should().Be(5);
+        result.AvailableSeats.Should().Be(15);
+        result.IsActive.Should().BeTrue();
+    }
+
+    [Test]
+    public async Task GetByIdAsync_NonExistingId_ReturnsNull()
+    {
+        // ========== ARRANGE ==========
+
+        // ========== ACT ==========
+        var result = await _showtimeService.GetByIdAsync(999);
+
+        // ========== ASSERT ==========
+        result.Should().BeNull();
+    }
+
+    #endregion
+
+    #region === UpdateShowtimeAsync - Tests ===
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeBasePrice_UpdatesSuccessfully()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var updateDto = new UpdateShowtimeDto { BasePrice = 200000m };
+
+        // ========== ACT ==========
+        await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        var updated = await _dbContext.Showtimes.FindAsync(showtimeId);
+        updated!.BasePrice.Should().Be(200000m);
+        updated.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeStartTime_AutoCalculatesEndTime()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim 135Phut",
+            Genre = "Action",
+            DurationMinutes = 135,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var newStart = DateTime.UtcNow.AddDays(2).Date.AddHours(10);
+        var updateDto = new UpdateShowtimeDto { StartTime = newStart };
+
+        // ========== ACT ==========
+        await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        var updated = await _dbContext.Showtimes.FindAsync(showtimeId);
+        updated!.StartTime.Should().Be(newStart);
+        // EndTime = StartTime + DurationMinutes + 15 (break)
+        var expectedEnd = newStart.AddMinutes(135 + 15);
+        updated.EndTime.Should().Be(expectedEnd);
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_StartTimeWithMissingDuration_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Khong Co Thoi Luong",
+            Genre = "Action",
+            DurationMinutes = null, // No duration set
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var updateDto = new UpdateShowtimeDto { StartTime = DateTime.UtcNow.AddDays(2) };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*DurationMinutes*");
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeStartTimeCausesCollision_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var baseTime = DateTime.UtcNow.Date.AddDays(7).AddHours(10);
+        var existingDto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = baseTime,
+            EndTime = baseTime.AddHours(2),
+            BasePrice = 100000m
+        };
+        var existingId = await _showtimeService.CreateShowtimeAsync(existingDto);
+
+        // Blocking showtime: 15:00 - 17:01
+        var blockingDto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = baseTime.AddHours(5),       // 15:00
+            EndTime = baseTime.AddHours(7).AddMinutes(1), // 17:01
+            BasePrice = 100000m
+        };
+        await _showtimeService.CreateShowtimeAsync(blockingDto);
+
+        // New StartTime=15:01 → EndTime=16:16. Condition 1: 15:01>=15:00 → true → throws!
+        var conflictUpdate = new UpdateShowtimeDto { StartTime = baseTime.AddMinutes(301) };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(existingId, conflictUpdate);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*trung gio*");
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeRoomIdWhenHasBookings_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        var room1 = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        var room2 = new Room { Name = "Phong 2", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.AddRange(room1, room2);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = 100 + i, RoomId = 2, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = 100 + i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room1.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var showtime = await _dbContext.Showtimes.FindAsync(showtimeId);
+        showtime!.BookedSeatsCount = 5;
+        await _dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateShowtimeDto { RoomId = room2.Id };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*da co ve duoc dat*");
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeMovieIdWhenHasBookings_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie1 = new Movie
+        {
+            Title = "Phim 1",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        var movie2 = new Movie
+        {
+            Title = "Phim 2",
+            Genre = "Drama",
+            DurationMinutes = 90,
+            Language = "English",
+            RatingCode = "R",
+            ReleaseDate = DateTime.UtcNow.AddDays(-5),
+            EndDate = DateTime.UtcNow.AddDays(5),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.AddRange(movie1, movie2);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie1.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var showtime = await _dbContext.Showtimes.FindAsync(showtimeId);
+        showtime!.BookedSeatsCount = 3;
+        await _dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateShowtimeDto { MovieId = movie2.Id };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*da co ve duoc dat*");
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeIsActive_UpdatesSuccessfully()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var updateDto = new UpdateShowtimeDto { IsActive = false };
+
+        // ========== ACT ==========
+        await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        var updated = await _dbContext.Showtimes.FindAsync(showtimeId);
+        updated!.IsActive.Should().BeFalse();
+        updated.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_NonExistingId_ThrowsKeyNotFoundException()
+    {
+        // ========== ARRANGE ==========
+        var updateDto = new UpdateShowtimeDto { BasePrice = 150000m };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(999, updateDto);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_NullDto_ThrowsArgumentNullException()
+    {
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(1, null!);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_ChangeRoomIdNoBookings_UpdatesSuccessfully()
+    {
+        // ========== ARRANGE ==========
+        var room1 = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        var room2 = new Room { Name = "Phong 2", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.AddRange(room1, room2);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = 100 + i, RoomId = 2, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = 100 + i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room1.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var updateDto = new UpdateShowtimeDto { RoomId = room2.Id };
+
+        // ========== ACT ==========
+        await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        var updated = await _dbContext.Showtimes.FindAsync(showtimeId);
+        updated!.RoomId.Should().Be(room2.Id);
+        updated.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_NegativeBasePrice_ThrowsException()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var updateDto = new UpdateShowtimeDto { BasePrice = -50000m };
+
+        // ========== ACT ==========
+        Func<Task> act = async () => await _showtimeService.UpdateShowtimeAsync(showtimeId, updateDto);
+
+        // ========== ASSERT ==========
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*am*");
+    }
+
+    [Test]
+    public async Task UpdateShowtimeAsync_UpdateWithEmptyDto_KeepsOriginalValues()
+    {
+        // ========== ARRANGE ==========
+        var room = new Room { Name = "Phong 1", Capacity = 20, Type = "2D" };
+        _dbContext.Rooms.Add(room);
+
+        var movie = new Movie
+        {
+            Title = "Phim Test",
+            Genre = "Action",
+            DurationMinutes = 120,
+            Language = "English",
+            RatingCode = "PG-13",
+            ReleaseDate = DateTime.UtcNow.AddDays(-10),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Movies.Add(movie);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _dbContext.SeatTemplates.Add(new SeatTemplate
+            {
+                Id = i, RoomId = 1, Row = ((char)('A' + (i - 1) / 5)).ToString(),
+                Number = ((i - 1) % 5) + 1, Type = SeatType.Regular, DisplayOrder = i
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        var dto = new CreateShowtimeDto
+        {
+            MovieId = movie.Id,
+            RoomId = room.Id,
+            StartTime = DateTime.UtcNow.AddDays(1),
+            EndTime = DateTime.UtcNow.AddDays(1).AddHours(2),
+            BasePrice = 100000m
+        };
+        var showtimeId = await _showtimeService.CreateShowtimeAsync(dto);
+
+        var original = await _dbContext.Showtimes.FindAsync(showtimeId);
+        var originalStart = original!.StartTime;
+        var originalEnd = original.EndTime;
+        var originalPrice = original.BasePrice;
+        var originalMovieId = original.MovieId;
+        var originalRoomId = original.RoomId;
+        var originalIsActive = original.IsActive;
+
+        var emptyUpdateDto = new UpdateShowtimeDto();
+
+        // ========== ACT ==========
+        await _showtimeService.UpdateShowtimeAsync(showtimeId, emptyUpdateDto);
+
+        // ========== ASSERT ==========
+        var updated = await _dbContext.Showtimes.FindAsync(showtimeId);
+        updated!.StartTime.Should().Be(originalStart);
+        updated.EndTime.Should().Be(originalEnd);
+        updated.BasePrice.Should().Be(originalPrice);
+        updated.MovieId.Should().Be(originalMovieId);
+        updated.RoomId.Should().Be(originalRoomId);
+        updated.IsActive.Should().Be(originalIsActive);
+    }
+
+    #endregion
 }

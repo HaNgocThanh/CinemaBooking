@@ -69,12 +69,28 @@ public class ShowtimeService : IShowtimeService
                 throw new InvalidOperationException($"Khong tim thay phim voi ID: {dto.MovieId}");
             }
 
+            if (!movie.DurationMinutes.HasValue || movie.DurationMinutes.Value <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Phim '{movie.Title}' chua co thoi luong (DurationMinutes). Vui long cap nhat DurationMinutes truoc.");
+            }
+
+            int breakMinutes = 15;
+            int durationMinutes = movie.DurationMinutes.Value;
+            DateTime endTime = dto.EndTime ?? dto.StartTime.AddMinutes(durationMinutes + breakMinutes);
+
+            if (dto.EndTime.HasValue && dto.EndTime.Value <= dto.StartTime)
+            {
+                throw new InvalidOperationException(
+                    $"Thoi gian ket thuc phai lon hon thoi gian bat dau.");
+            }
+
             var existingConflict = await _context.Showtimes
                 .Where(s => s.RoomId == dto.RoomId && s.IsActive)
                 .Where(s =>
                     (dto.StartTime >= s.StartTime && dto.StartTime < s.EndTime) ||
-                    (dto.EndTime > s.StartTime && dto.EndTime <= s.EndTime) ||
-                    (dto.StartTime <= s.StartTime && dto.EndTime >= s.EndTime))
+                    (endTime > s.StartTime && endTime <= s.EndTime) ||
+                    (dto.StartTime <= s.StartTime && endTime >= s.EndTime))
                 .FirstOrDefaultAsync();
 
             if (existingConflict != null)
@@ -89,7 +105,7 @@ public class ShowtimeService : IShowtimeService
                 MovieId = dto.MovieId,
                 RoomId = dto.RoomId,
                 StartTime = dto.StartTime,
-                EndTime = dto.EndTime,
+                EndTime = endTime,
                 BasePrice = dto.BasePrice,
                 TotalSeats = room.Capacity,
                 BookedSeatsCount = 0,
@@ -115,6 +131,171 @@ public class ShowtimeService : IShowtimeService
             await transaction.CommitAsync();
 
             return showtime.Id;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Lấy chi tiết một suất chiếu theo ID.
+    /// Trả về null nếu không tìm thấy.
+    /// </summary>
+    public async Task<ShowtimeResponseDto?> GetByIdAsync(int id)
+    {
+        var showtime = await _context.Showtimes
+            .Include(s => s.Movie)
+            .Include(s => s.Room)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (showtime == null)
+            return null;
+
+        return new ShowtimeResponseDto
+        {
+            Id = showtime.Id,
+            MovieId = showtime.MovieId,
+            MovieTitle = showtime.Movie?.Title ?? "Unknown",
+            RoomId = showtime.RoomId,
+            RoomName = showtime.Room?.Name ?? "Unknown",
+            StartTime = showtime.StartTime,
+            EndTime = showtime.EndTime,
+            BasePrice = showtime.BasePrice,
+            TotalSeats = showtime.TotalSeats,
+            BookedSeatsCount = showtime.BookedSeatsCount,
+            AvailableSeats = showtime.TotalSeats - showtime.BookedSeatsCount,
+            IsActive = showtime.IsActive,
+            CreatedAt = showtime.CreatedAt
+        };
+    }
+
+    /// <summary>
+    /// Cập nhật suất chiếu theo ID.
+    ///
+    /// Logic tự động hóa:
+    ///   - Khi StartTime được cung cấp, EndTime được tính lại = StartTime + Movie.DurationMinutes + 15 phút nghỉ.
+    ///   - Khi MovieId hoặc RoomId thay đổi, đều phải kiểm tra đụng độ (collision check).
+    ///   - Nếu có ghế đã được đặt (BookedSeatsCount > 0), chỉ cho phép sửa: StartTime (miễn là không gây
+    ///     collision), EndTime, BasePrice. Không cho sửa MovieId/RoomId khi đã có vé được đặt.
+    ///
+    /// Kiểm tra đụng độ:
+    ///   - Với RoomId mới (hoặc hiện tại), kiểm tra xem khoảng [StartTime, EndTime] có chồng lấn
+    ///     với bất kỳ suất chiếu active nào khác trong cùng phòng hay không.
+    ///   - Nếu có, ném InvalidOperationException.
+    /// </summary>
+    public async Task UpdateShowtimeAsync(int id, UpdateShowtimeDto dto)
+    {
+        if (dto == null)
+            throw new ArgumentNullException(nameof(dto));
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var showtime = await _context.Showtimes
+                .Include(s => s.Movie)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (showtime == null)
+                throw new KeyNotFoundException($"Khong tim thay suat chieu voi ID: {id}");
+
+            var hasBookings = showtime.BookedSeatsCount > 0;
+
+            // --- Validate MovieId ---
+            int targetMovieId = dto.MovieId ?? showtime.MovieId;
+            if (dto.MovieId.HasValue && dto.MovieId.Value != showtime.MovieId)
+            {
+                if (hasBookings)
+                    throw new InvalidOperationException(
+                        "Khong the doi phim vi da co ve duoc dat cho suat chieu nay.");
+
+                var movie = await _context.Movies.FirstOrDefaultAsync(m => m.Id == dto.MovieId.Value);
+                if (movie == null)
+                    throw new InvalidOperationException($"Khong tim thay phim voi ID: {dto.MovieId}");
+
+                showtime.MovieId = dto.MovieId.Value;
+                showtime.Movie = movie;
+            }
+
+            // --- Validate RoomId ---
+            int targetRoomId = dto.RoomId ?? showtime.RoomId;
+            if (dto.RoomId.HasValue && dto.RoomId.Value != showtime.RoomId)
+            {
+                if (hasBookings)
+                    throw new InvalidOperationException(
+                        "Khong the doi phong chieu vi da co ve duoc dat cho suat chieu nay.");
+
+                var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == dto.RoomId.Value);
+                if (room == null)
+                    throw new InvalidOperationException($"Khong tim thay phong chieu voi ID: {dto.RoomId}");
+
+                showtime.RoomId = dto.RoomId.Value;
+                showtime.Room = room;
+            }
+
+            // --- Resolve final StartTime and compute EndTime ---
+            DateTime startTime = dto.StartTime ?? showtime.StartTime;
+
+            if (dto.StartTime.HasValue)
+            {
+                var targetMovie = await _context.Movies
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.Id == targetMovieId);
+
+                if (targetMovie == null)
+                    throw new InvalidOperationException($"Khong tim thay phim voi ID: {targetMovieId}");
+
+                if (!targetMovie.DurationMinutes.HasValue || targetMovie.DurationMinutes.Value <= 0)
+                    throw new InvalidOperationException(
+                        $"Phim '{targetMovie.Title}' chua co thoi luong. Vui long cap nhat DurationMinutes truoc.");
+
+                int breakMinutes = 15;
+                int durationMinutes = targetMovie.DurationMinutes.Value;
+                showtime.StartTime = startTime;
+                showtime.EndTime = startTime.AddMinutes(durationMinutes + breakMinutes);
+            }
+
+            // --- Collision check (always needed when room or start changes) ---
+            if (dto.StartTime.HasValue || dto.RoomId.HasValue || dto.MovieId.HasValue)
+            {
+                var conflict = await _context.Showtimes
+                    .Where(s => s.Id != id && s.RoomId == targetRoomId && s.IsActive)
+                    .Where(s =>
+                        (showtime.StartTime >= s.StartTime && showtime.StartTime < s.EndTime) ||
+                        (showtime.EndTime > s.StartTime && showtime.EndTime <= s.EndTime) ||
+                        (showtime.StartTime <= s.StartTime && showtime.EndTime >= s.EndTime))
+                    .FirstOrDefaultAsync();
+
+                if (conflict != null)
+                {
+                    throw new InvalidOperationException(
+                        $"Phong nay da co suat chieu trung gio. "
+                        + $"Suat chieu trung tam bat dau luc {conflict.StartTime:HH:mm} - {conflict.EndTime:HH:mm}");
+                }
+            }
+
+            // --- Update remaining fields ---
+            if (dto.BasePrice.HasValue)
+            {
+                if (dto.BasePrice.Value < 0)
+                    throw new InvalidOperationException("Gia ve khong duoc am.");
+
+                showtime.BasePrice = dto.BasePrice.Value;
+            }
+
+            if (dto.IsActive.HasValue)
+            {
+                showtime.IsActive = dto.IsActive.Value;
+            }
+
+            showtime.UpdatedAt = DateTime.UtcNow;
+
+            _context.Showtimes.Update(showtime);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
         catch (Exception)
         {

@@ -68,15 +68,15 @@ public class SeatCleanupWorker : BackgroundService
 
             // ⚠️ CRITICAL: Dùng ExecuteSqlRawAsync để UPDATE status và clear lock fields
             var updatedCount = await context.Database.ExecuteSqlRawAsync(
-                @"UPDATE ShowtimeSeats 
-                  SET Status = 0, 
-                      LockedBySessionId = NULL, 
-                      LockedAt = NULL, 
-                      HoldExpiryTime = NULL,
-                      UpdatedAt = SYSDATE
-                  WHERE Status = 1 
-                    AND HoldExpiryTime < {0}",
-                now,
+                @"UPDATE ""ShowtimeSeats""
+                  SET ""Status"" = 0,
+                      ""LockedBySessionId"" = NULL,
+                      ""LockedAt"" = NULL,
+                      ""HoldExpiryTime"" = NULL,
+                      ""UpdatedAt"" = SYSDATE
+                  WHERE ""Status"" = 1
+                    AND ""HoldExpiryTime"" < {0}",
+                [now],
                 cancellationToken);
 
             if (updatedCount > 0)

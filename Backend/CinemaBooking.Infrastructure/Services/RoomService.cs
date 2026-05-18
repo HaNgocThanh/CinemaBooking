@@ -62,7 +62,7 @@ public class RoomService : IRoomService
         var room = new Room
         {
             Name = dto.Name,
-            Capacity = dto.Capacity,
+            Capacity = 0, // Will be auto-synced from seat layout
             Type = dto.Type
         };
 
@@ -126,7 +126,54 @@ public class RoomService : IRoomService
             Row = t.Row,
             Number = t.Number,
             Type = t.Type.ToString(),
-            DisplayOrder = t.DisplayOrder
+            DisplayOrder = t.DisplayOrder,
+            GridRow = t.GridRow,
+            GridColumn = t.GridColumn
         }).ToList();
+    }
+
+    public async Task<bool> SaveSeatTemplatesAsync(int roomId, BulkCreateSeatTemplateDto dto)
+    {
+        var room = await _context.Rooms.FindAsync(roomId);
+        if (room == null)
+            return false;
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var existing = await _context.SeatTemplates
+                .Where(st => st.RoomId == roomId)
+                .ToListAsync();
+            _context.SeatTemplates.RemoveRange(existing);
+
+            var hasActiveShowtimes = await _context.Showtimes
+                .AnyAsync(s => s.RoomId == roomId && s.IsActive);
+
+            var newTemplates = dto.Seats.Select((s, idx) => new SeatTemplate
+            {
+                RoomId = roomId,
+                Row = s.Row,
+                Number = s.Number,
+                Type = Enum.Parse<SeatType>(s.Type, ignoreCase: true),
+                DisplayOrder = idx,
+                GridRow = s.GridRow,
+                GridColumn = s.GridColumn
+            }).ToList();
+
+            await _context.SeatTemplates.AddRangeAsync(newTemplates);
+
+            // Auto-sync Room.Capacity from actual seat count (source of truth)
+            room.Capacity = dto.TotalSeats;
+            _context.Rooms.Update(room);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }

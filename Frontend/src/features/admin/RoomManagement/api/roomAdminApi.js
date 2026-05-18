@@ -18,4 +18,7 @@ export const roomAdminApi = {
 
   deleteRoom: (id) =>
     axiosClient.delete(`/rooms/${id}`),
+
+  saveSeatTemplates: (roomId, seats, totalSeats) =>
+    axiosClient.post(`/rooms/${roomId}/seats`, { seats, totalSeats }),
 };
