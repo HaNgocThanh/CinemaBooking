@@ -214,6 +214,7 @@ public class BookingsController : ControllerBase
     /// <summary>
     /// Lấy lịch sử đặt vé của khách hàng đang đăng nhập.
     /// Chỉ trả về các đơn đã hoàn tất (Success) hoặc đã hủy (Cancelled/Expired).
+    /// KHÔNG bao gồm các đơn đang chờ thanh toán (Pending) hoặc chờ xác nhận (AwaitingConfirmation).
     /// </summary>
     [HttpGet("my-history")]
     [ProducesResponseType(typeof(ApiSuccessResponse<BookingHistoryListDto>), StatusCodes.Status200OK)]
@@ -226,6 +227,30 @@ public class BookingsController : ControllerBase
 
         _logger.LogInformation(
             "MyHistory retrieved for UserId: {UserId}. Total bookings: {Count}",
+            userId, result.TotalCount);
+
+        return Ok(new ApiSuccessResponse<BookingHistoryListDto>(
+            result,
+            $"Tìm thấy {result.TotalCount} đơn đặt vé.",
+            HttpContext.TraceIdentifier
+        ));
+    }
+
+    /// <summary>
+    /// Lấy TẤT CẢ booking của khách hàng đang đăng nhập (bao gồm cả Pending/AwaitingConfirmation).
+    /// Dùng khi khách hàng muốn xem các đơn vé chưa hoàn tất (chờ thanh toán, chờ xác nhận).
+    /// </summary>
+    [HttpGet("my-all-bookings")]
+    [ProducesResponseType(typeof(ApiSuccessResponse<BookingHistoryListDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiSuccessResponse<BookingHistoryListDto>>> GetAllMyBookings()
+    {
+        var userId = GetCurrentUserId();
+        _logger.LogInformation("GetAllMyBookings called for UserId: {UserId} (from JWT)", userId);
+
+        var result = await _bookingPaymentService.GetAllMyBookingsAsync(userId);
+
+        _logger.LogInformation(
+            "AllMyBookings retrieved for UserId: {UserId}. Total bookings: {Count}",
             userId, result.TotalCount);
 
         return Ok(new ApiSuccessResponse<BookingHistoryListDto>(

@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Spin, Result, Typography, Tag, Empty } from 'antd';
+import { Card, Button, Spin, Result, Typography, Tag, Empty, Tabs } from 'antd';
 import { Ticket, Calendar, Clock, Armchair, QrCode } from 'lucide-react';
-import { useMyHistory } from '@/services/bookingPaymentApi';
+import { useMyHistory, useAllMyBookings } from '@/services/bookingPaymentApi';
 
 const { Title, Text } = Typography;
 
@@ -29,22 +30,30 @@ const STATUS_CONFIG = {
   Success: { color: 'green', label: 'Thành công', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
   Cancelled: { color: 'red', label: 'Đã hủy', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
   Expired: { color: 'orange', label: 'Hết hạn', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' },
+  Pending: { color: 'blue', label: 'Chờ thanh toán', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+  AwaitingConfirmation: { color: 'cyan', label: 'Chờ xác nhận', bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700' },
 };
 
 export default function MyTickets() {
   const navigate = useNavigate();
-  const { data, isLoading, isError, error } = useMyHistory();
+  const [activeTab, setActiveTab] = useState('completed');
+
+  // Two queries: one for completed bookings, one for all bookings
+  const completedQuery = useMyHistory();
+  const allQuery = useAllMyBookings();
+
+  // Use active query based on selected tab
+  const currentQuery = activeTab === 'completed' ? completedQuery : allQuery;
+  const { data, isLoading, isError, error } = currentQuery;
 
   // DEBUG: trace the raw API response
-  console.log('[MyTickets] data:', data);
-  console.log('[MyTickets] data?.data:', data?.data);
-  console.log('[MyTickets] bookings (data?.data?.items):', data?.data?.items);
-  console.log('[MyTickets] isLoading:', isLoading, '| isError:', isError, '| error:', error);
+  console.log(`[MyTickets] Tab: ${activeTab} | Raw response data:`, data);
+  console.log('[MyTickets] Query status - isLoading:', isLoading, '| isError:', isError, '| error:', error);
 
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spin size="large" tip="Đang tải lịch sử đặt vé..." />
+        <Spin size="large" tip="Đang tải dữ liệu..." />
       </div>
     );
   }
@@ -67,10 +76,20 @@ export default function MyTickets() {
     );
   }
 
-  const rawItems = data?.data?.items ?? data?.items ?? (Array.isArray(data) ? data : []);
-  const totalCount = data?.data?.totalCount ?? data?.items?.length ?? 0;
+  // ✅ Parse items từ response wrapper (axiosClient trả về response.data)
+  // API returns: { success, data: { items, totalCount }, message, traceId }
+  const parsedData = data?.data || data || {};
+  const rawItems = Array.isArray(parsedData.items) ? parsedData.items : [];
+  const totalCount = parsedData.totalCount ?? rawItems.length ?? 0;
 
-  console.log('[MyTickets] rawItems:', rawItems, '| totalCount:', totalCount);
+  console.log(
+    '[MyTickets] Parsed result - rawItems count:',
+    rawItems.length,
+    '| totalCount:',
+    totalCount,
+    '| items:',
+    rawItems
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -91,6 +110,25 @@ export default function MyTickets() {
         </div>
       </div>
 
+      {/* Tab Selector */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'completed',
+            label: '✅ Vé Hoàn Tất',
+            children: null, // Content rendered below
+          },
+          {
+            key: 'all',
+            label: '📋 Tất Cả Đơn Hàng',
+            children: null,
+          },
+        ]}
+        style={{ marginBottom: 24 }}
+      />
+
       {/* Empty State */}
       {rawItems.length === 0 && (
         <Card style={{ borderRadius: 16, textAlign: 'center', padding: 48 }}>
@@ -103,11 +141,15 @@ export default function MyTickets() {
             description={
               <div>
                 <Text strong style={{ fontSize: 16 }}>
-                  Chưa có đơn đặt vé nào
+                  {activeTab === 'completed'
+                    ? 'Chưa có vé nào hoàn tất'
+                    : 'Chưa có đơn đặt vé nào'}
                 </Text>
                 <br />
                 <Text type="secondary">
-                  Hãy đặt vé xem phim yêu thích của bạn ngay!
+                  {activeTab === 'completed'
+                    ? 'Các vé đã thanh toán thành công sẽ hiển thị ở đây.'
+                    : 'Hãy đặt vé xem phim yêu thích của bạn ngay!'}
                 </Text>
               </div>
             }

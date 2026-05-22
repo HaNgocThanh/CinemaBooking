@@ -73,6 +73,13 @@ const bookingPaymentApi = {
    */
   getMyHistory: () =>
     axiosClient.get('/bookings/my-history'),
+
+  /**
+   * Get ALL bookings for current user (including Pending/AwaitingConfirmation)
+   * @returns {Promise}
+   */
+  getAllMyBookings: () =>
+    axiosClient.get('/bookings/my-all-bookings'),
 };
 
 // ========================================
@@ -156,12 +163,23 @@ export function useETicket(bookingId) {
 }
 
 /**
- * Hook for fetching booking history of current user
+ * Hook for fetching booking history of current user (completed bookings only)
  */
 export function useMyHistory() {
   return useQuery({
     queryKey: ['my-bookings'],
     queryFn: () => bookingPaymentApi.getMyHistory(),
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for fetching ALL bookings of current user (including pending/awaiting)
+ */
+export function useAllMyBookings() {
+  return useQuery({
+    queryKey: ['all-my-bookings'],
+    queryFn: () => bookingPaymentApi.getAllMyBookings(),
     staleTime: 30 * 1000,
   });
 }

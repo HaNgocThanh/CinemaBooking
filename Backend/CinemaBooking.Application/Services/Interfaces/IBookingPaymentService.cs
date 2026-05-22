@@ -65,4 +65,12 @@ public interface IBookingPaymentService
     /// <param name="customerId">ID của khách hàng.</param>
     /// <returns>Danh sách lịch sử đặt vé.</returns>
     Task<BookingHistoryListDto> GetMyHistoryAsync(int customerId);
+
+    /// <summary>
+    /// Lấy TẤT CẢ booking của khách hàng (bao gồm Pending, AwaitingConfirmation, Success, Cancelled, Expired).
+    /// Dùng khi khách hàng muốn xem đơn vé chưa hoàn tất hoặc lịch sử chi tiết.
+    /// </summary>
+    /// <param name="customerId">ID của khách hàng.</param>
+    /// <returns>Danh sách tất cả booking.</returns>
+    Task<BookingHistoryListDto> GetAllMyBookingsAsync(int customerId);
 }

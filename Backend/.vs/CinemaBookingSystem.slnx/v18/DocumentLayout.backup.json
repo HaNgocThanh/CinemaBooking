@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\CinemaBooking\\src\\Backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|d:\\cinemabooking\\src\\backend\\cinemabooking.application\\services\\interfaces\\ibookingpaymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|solutionrelative:cinemabooking.application\\services\\interfaces\\ibookingpaymentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|d:\\cinemabooking\\src\\backend\\cinemabooking.application\\cinemabooking.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{F24C420D-E779-0B5A-8F4C-9E5B51B2A5FA}|CinemaBooking.Application\\CinemaBooking.Application.csproj|solutionrelative:cinemabooking.application\\cinemabooking.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     }
@@ -23,6 +27,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "IBookingPaymentService.cs",
+              "DocumentMoniker": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\Services\\Interfaces\\IBookingPaymentService.cs",
+              "RelativeDocumentMoniker": "CinemaBooking.Application\\Services\\Interfaces\\IBookingPaymentService.cs",
+              "ToolTip": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\Services\\Interfaces\\IBookingPaymentService.cs",
+              "RelativeToolTip": "CinemaBooking.Application\\Services\\Interfaces\\IBookingPaymentService.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAuwEoAAABGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-22T07:49:28.234Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "CinemaBooking.Application.csproj",
               "DocumentMoniker": "D:\\CinemaBooking\\src\\Backend\\CinemaBooking.Application\\CinemaBooking.Application.csproj",
               "RelativeDocumentMoniker": "CinemaBooking.Application\\CinemaBooking.Application.csproj",

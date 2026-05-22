@@ -394,7 +394,8 @@ public class BookingPaymentService : IBookingPaymentService
     {
         _logger.LogInformation("User {UserId} is requesting ticket history (GetMyHistoryAsync)", customerId);
 
-        // DEBUG: temporarily remove Status filter to verify data returns
+        // Lấy các đơn đặt vé đã hoàn tất (Success), đã hủy (Cancelled), hoặc hết hạn (Expired)
+        // Không bao gồm Pending/AwaitingConfirmation (vé chưa được duyệt)
         var bookings = await _context.Bookings
             .Include(b => b.Tickets)
                 .ThenInclude(t => t.ShowtimeSeat)
@@ -403,15 +404,77 @@ public class BookingPaymentService : IBookingPaymentService
             .Include(b => b.Showtime)
                 .ThenInclude(s => s!.Room)
             .Where(b => b.CustomerId == customerId)
-            // .Where(b =>
-            //     b.Status == BookingStatus.Success ||
-            //     b.Status == BookingStatus.Cancelled ||
-            //     b.Status == BookingStatus.Expired)
+            .Where(b =>
+                b.Status == BookingStatus.Success ||
+                b.Status == BookingStatus.Cancelled ||
+                b.Status == BookingStatus.Expired)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
 
         _logger.LogInformation(
-            "GetMyHistoryAsync: UserId={UserId}, Found {Count} bookings (Status filter disabled for debug)",
+            "GetMyHistoryAsync: UserId={UserId}, Found {Count} completed bookings (Success/Cancelled/Expired). " +
+            "Note: Pending/AwaitingConfirmation bookings are excluded from ticket history.",
+            customerId, bookings.Count);
+
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+        var items = bookings.Select(b =>
+        {
+            var showtime = b.Showtime!;
+            var localStart = TimeZoneInfo.ConvertTimeFromUtc(showtime.StartTime, timeZone);
+            var localBookedAt = TimeZoneInfo.ConvertTimeFromUtc(b.BookedAt, timeZone);
+
+            var seatNames = string.Join(", ",
+                b.Tickets
+                    .Select(t => t.ShowtimeSeat?.SeatNumber)
+                    .Where(n => n != null)
+                    .OrderBy(n => n)
+                    .Select(n => n!));
+
+            return new BookingHistoryDto
+            {
+                BookingId = b.Id,
+                BookingCode = b.BookingCode,
+                MovieTitle = showtime.Movie?.Title ?? "Unknown",
+                PosterUrl = showtime.Movie?.PosterUrl,
+                RoomName = showtime.Room?.Name ?? "Unknown",
+                ShowDate = localStart.ToString("dd/MM/yyyy"),
+                StartTime = localStart.ToString("HH:mm"),
+                SeatNames = seatNames,
+                TotalTickets = b.TotalTickets,
+                TotalAmount = b.TotalAmount,
+                Status = b.Status.ToString(),
+                StatusValue = (int)b.Status,
+                BookedAt = localBookedAt.ToString("dd/MM/yyyy HH:mm")
+            };
+        }).ToList();
+
+        return new BookingHistoryListDto
+        {
+            Items = items,
+            TotalCount = items.Count
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<BookingHistoryListDto> GetAllMyBookingsAsync(int customerId)
+    {
+        _logger.LogInformation("User {UserId} is requesting all bookings (GetAllMyBookingsAsync)", customerId);
+
+        // Lấy TẤT CẢ booking của user (bao gồm Pending, AwaitingConfirmation, Success, Cancelled, Expired)
+        var bookings = await _context.Bookings
+            .Include(b => b.Tickets)
+                .ThenInclude(t => t.ShowtimeSeat)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Movie)
+            .Include(b => b.Showtime)
+                .ThenInclude(s => s!.Room)
+            .Where(b => b.CustomerId == customerId)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        _logger.LogInformation(
+            "GetAllMyBookingsAsync: UserId={UserId}, Found {Count} total bookings (all statuses)",
             customerId, bookings.Count);
 
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
