@@ -1,20 +1,78 @@
-# Logs
-logs
-*.log
+# ============================================
+# React Frontend (.gitignore)
+# ============================================
+# Vite + React + Node.js development environment
+
+# ============================================
+# 📦 Dependencies
+# ============================================
+node_modules/
 npm-debug.log*
+npm-error.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+pnpm-error.log*
 lerna-debug.log*
+.yarn/
+.yarn/install-state.gz
 
-node_modules
-dist
-dist-ssr
-*.local
+## npm lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Editor directories and files
+## npm cache
+.npm/
+
+# ============================================
+# 🔴 Build Outputs
+# ============================================
+dist/
+dist-ssr/
+build/
+coverage/
+.next/
+out/
+
+## Vite cache
+.vite/
+.parcel-cache/
+
+# ============================================
+# 🔐 Environment & Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ============================================
+# 📝 Logs & Temporary Files
+# ============================================
+logs
+*.log
+lerna-debug.log*
+.tmp/
+*.temp
+*.bak
+*.backup
+
+## Test coverage reports
+.nyc_output/
+coverage/
+.lcov
+
+# ============================================
+# 🛠️ IDE & Editor Files
+# ============================================
+## VS Code
 .vscode/*
 !.vscode/extensions.json
+
+## Other IDEs
 .idea
 .DS_Store
 *.suo
@@ -22,3 +80,57 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+## Sublime, Vim, Emacs
+*.sublime-project
+*.sublime-workspace
+.swp
+.swo
+.swn
+*~
+
+## IntelliJ
+*.iml
+*.iws
+*.ipr
+
+# ============================================
+# 🖥️ OS Specific Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================
+# 🤖 AI Assistant Files
+# ============================================
+.claude/
+.claudeignore
+
+# ============================================
+# 📋 Testing
+# ============================================
+coverage/
+test-results/
+.nyc_output/
+.lcov.info
+*.coverage
+
+# ============================================
+# 🔧 Linting & Formatting Cache
+# ============================================
+.eslintcache
+.prettier-ignore
+
+# ============================================
+# 🎯 Keep These Files (Important)
+# ============================================
+!.gitkeep
+!.github/
+!.vscode/extensions.json
+

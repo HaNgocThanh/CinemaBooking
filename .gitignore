@@ -1,92 +1,126 @@
 # ============================================
-# Cinema Booking System - .gitignore
+# Cinema Booking System - Backend .gitignore
 # ============================================
+# This file should be in /src/ directory
+# It covers both .NET Backend and Node.js Frontend
 
 # ============================================
-# Backend (.NET) - Build & Binaries
+# 🔴 CRITICAL - Build Outputs (NEVER COMMIT)
 # ============================================
-## Folders
+## .NET Build outputs
 bin/
 obj/
 .vs/
 .vscode/
 .idea/
 
-## Build outputs
+## Build artifacts
 *.dll
 *.exe
 *.pdb
 *.so
 *.dylib
+*.lib
+*.a
 
-## NuGet
+## NuGet package cache
 *.nupkg
 *.snupkg
 packages/
 .nuget/
 
-## User-specific files
+## User-specific files (IDE settings)
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 .vscode/settings.json
+.idea/
+*.swp
+*.swo
 
-## Local history for Visual Studio
+## Visual Studio cache
+.vs/
+.vscode/
 .localhistory/
 
-## Visual Studio cache/options
-.vs/
+# ============================================
+# 🔐 CRITICAL - Secrets & Configuration
+# ============================================
+## Environment variables (NEVER COMMIT!)
+.env
+.env.local
+.env.*.local
+*.env
+.env.example.local
 
-# ============================================
-# Backend - Configuration & Secrets
-# ============================================
-## Environment variables (NEVER commit these!)
+## ASP.NET Core sensitive configs
 appsettings.Development.json
 appsettings.Production.json
 appsettings.Staging.json
 appsettings.*.json
 !appsettings.json
 
-## Secrets
+## User secrets
 secrets.json
 user-secrets.json
+secrets.local.json
 
 ## Connection strings with credentials
 *.local
 
-# ============================================
-# Backend - Database & Migrations
-# ============================================
-## SQL migration scripts (local only)
-migrations/*.sql
-*.sql.bak
+## AWS & Cloud credentials
+.aws/
+.gcloud/
 
-## Database files
+# ============================================
+# 📊 Database & Migrations
+# ============================================
+## Database files (local dev only)
 *.db
 *.sqlite
 *.sqlite3
 *.mdf
 *.ldf
+*.ndf
+
+## Generated SQL migration scripts
+migration*.sql
+*.sql.bak
+Database/migrations/*.sql
 
 # ============================================
-# Backend - Logs & Reports
+# 📝 Logs, Temp Files & Reports
 # ============================================
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.tmp/
+*.temp
+*.bak
+
+## Test reports & coverage
 test-results/
 TestResults/
 coverage/
+htmlcov/
 *.trx
+.nyc_output/
 
 # ============================================
-# Frontend (React/Node) - Dependencies
+# 🎯 Frontend (React/Node) - Node Modules
 # ============================================
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+## Dependency lock files
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
@@ -97,7 +131,7 @@ pnpm-lock.yaml
 .node_repl_history
 
 # ============================================
-# Frontend - Build Output
+# 📦 Frontend - Build Output
 # ============================================
 dist/
 build/

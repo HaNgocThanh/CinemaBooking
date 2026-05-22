@@ -1,0 +1,128 @@
+# ============================================
+# .NET Backend (.gitignore)
+# ============================================
+# ASP.NET Core Web API + Entity Framework
+
+# ============================================
+# 🔴 Build Outputs
+# ============================================
+bin/
+obj/
+.vs/
+.vscode/settings.json
+
+## Build artifacts
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.lib
+
+## NuGet artifacts
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+.nuget/NuGet.Config
+
+# ============================================
+# 🔐 Secrets & Configuration
+# ============================================
+## Environment variables (LOCAL DEV ONLY)
+.env
+.env.local
+.env.*.local
+
+## ASP.NET Core settings
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.json
+!appsettings.json
+
+## User secrets
+secrets.json
+user-secrets.json
+
+# ============================================
+# 💾 Database & Migrations
+# ============================================
+## Local database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.ndf
+
+## Generated migration SQL
+migration*.sql
+*.sql.bak
+
+# ============================================
+# 📝 Logs & Reports
+# ============================================
+logs/
+*.log
+test-results/
+TestResults/
+coverage/
+*.trx
+.nyc_output/
+
+# ============================================
+# 🛠️ IDE & User Settings
+# ============================================
+## Visual Studio
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.localhistory/
+
+## User-specific settings
+.vscode/settings.json
+.idea/
+
+## Rider (JetBrains)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ============================================
+# 🖥️ OS Specific
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================
+# 📦 Temporary Files
+# ============================================
+.tmp/
+*.temp
+*.bak
+*.backup
+*~
+*.old
+
+# ============================================
+# 🐳 Docker (local overrides)
+# ============================================
+docker-compose.override.yml
+.docker/
+
+# ============================================
+# 🤖 AI Assistant
+# ============================================
+.claude/
+.claudeignore
